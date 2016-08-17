@@ -7,14 +7,21 @@ class TestParameter
     private $id;
     private $validator;
     private $def;
+    private $rawdef;
     private $builder;
 
-    public function __construct(string $name, $default, callable $builder, callable $validator)
-    {
+    public function __construct(
+        string $name,
+        $default,
+        string $rawDefault,
+        callable $builder,
+        callable $validator
+    ) {
         $this->id = $name;
         $this->validator = $validator;
         $this->def = $default;
         $this->builder = $builder;
+        $this->rawdef = $rawDefault;
     }
 
     public function name() : string
@@ -27,13 +34,18 @@ class TestParameter
         return $this->def;
     }
 
+    public function rawDefault()
+    {
+        return $this->rawdef;
+    }
+
     public function validate(string $value)
     {
-        return $this->validator($value);
+        return call_user_func($this->validator, $value);
     }
     
     public function build(string $value)
     {
-        return $this->builder($value);
+        return call_user_func($this->builder, $value);
     }
 }

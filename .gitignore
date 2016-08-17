@@ -1,2 +1,4 @@
 *.swp
 *.*~
+composer.lock
+vendor

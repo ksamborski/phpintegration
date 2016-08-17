@@ -9,7 +9,7 @@ class Test
     private $id;
     private $runable;
 
-    public function __construct(string $id, collable $run)
+    public function __construct(string $id, callable $run)
     {
         $this->id = $id;
         $this->runable = $run;
@@ -27,7 +27,11 @@ class Test
         $msg = '';
 
         try {
-            $this->runable($params);
+            $res = call_user_func($this->runable, [$params]);
+            $failed = $res !== true;
+            if ($failed) {
+                $msg = $res;
+            }
         } catch (Exception $e) {
             $msg = $e->getMessage();
             $failed = true;
@@ -36,7 +40,7 @@ class Test
         $t2 = microtime(true);
 
         if ($failed) {
-            return TestResult::failed($msg, $t2 - $t1);
+            return TestResult::fail($msg, $t2 - $t1);
         } else {
             return TestResult::ok($t2 - $t1);
         }

@@ -1,0 +1,12 @@
+{
+    "name": "ksamborski/PHPIntegration",
+    "version": "0.1",
+    "require": {
+        "php": ">=7.0.0"
+    },
+    "autoload": {
+        "psr-0" : {
+            "PHPIntegration\\" : "."
+        }
+    }
+}

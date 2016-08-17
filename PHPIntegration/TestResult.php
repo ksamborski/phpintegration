@@ -37,12 +37,12 @@ class TestResult
 
     public function isFailed() : bool
     {
-        return $this->status == TaskStatus::failedStatus();
+        return $this->status == TestResult::failedStatus();
     }
 
     public function isOk() : bool
     {
-        return $this->status == TaskStatus::okStatus();
+        return $this->status == TestResult::okStatus();
     }
 
     public function failMessage() : string
