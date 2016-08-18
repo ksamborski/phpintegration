@@ -8,16 +8,23 @@ class Test
 {
     private $id;
     private $runable;
+    private $tl;
 
-    public function __construct(string $id, callable $run)
+    public function __construct(string $id, callable $run, int $timeLimit = null)
     {
         $this->id = $id;
         $this->runable = $run;
+        $this->tl = $timeLimit;
     }
 
     public function name() : string
     {
         return $this->id;
+    }
+
+    public function timeLimit()
+    {
+        return $this->tl;
     }
 
     public function run(array $params) : TestResult
@@ -27,7 +34,7 @@ class Test
         $msg = '';
 
         try {
-            $res = call_user_func($this->runable, [$params]);
+            $res = call_user_func($this->runable, $params);
             $failed = $res !== true;
             if ($failed) {
                 $msg = $res;
@@ -38,11 +45,12 @@ class Test
         }
 
         $t2 = microtime(true);
+        $duration = ($t2 - $t1) * 1000;
 
-        if ($failed) {
-            return TestResult::fail($msg, $t2 - $t1);
+        if ($failed || ($this->tl !== null && $this->tl < $duration)) {
+            return TestResult::fail($msg, $duration);
         } else {
-            return TestResult::ok($t2 - $t1);
+            return TestResult::ok($duration);
         }
     }
 }

@@ -15,6 +15,7 @@ class Console
         $short  = "";
         $short .= "t:"; //-t "test name"
         $short .= "p:"; //-p "parameter:value"
+        $short .= "n:"; //-n 10
         $short .= "h";  //-h
 
         $long = [
@@ -36,6 +37,7 @@ class Console
         $parsedOptions = [
             "tests" => [],
             "help" => false,
+            "n" => 1,
             "params" => []
         ];
 
@@ -59,6 +61,9 @@ class Console
                 } else {
                     $parsedOptions["tests"] = [$optval];
                 }
+                break;
+            case "n":
+                $parsedOptions["n"] = $optval;
                 break;
             case "h":
             case "help":
@@ -111,6 +116,10 @@ class Console
             }
         }
 
+        if (!is_numeric($parsedOptions["n"]) || $parsedOptions["n"] < 1) {
+            return "The number of repeats must be >= 1\n";
+        }
+
         return true;
     }
 
@@ -122,6 +131,8 @@ class Console
              . "\t\t\t\t\t Run only given tests (you can pass multiple -t option) \n"
              . Printer::green("  -p, --parameter PARAMETER_NAME:PARAMETER_VALUE ")
              . "\t Set test parameter (you can pass multiple -p option) \n"
+             . Printer::green("  -n ")
+             . "\t\t\t\t\t\t\t Number of repeats \n\n"
              . Printer::green("  -h, --help ")
              . "\t\t\t\t\t\t Show this help\n\n"
              . Printer::yellow("Available tests:\n")
@@ -171,8 +182,9 @@ class Console
         return array_merge($defaultParams, $newParams);
     }
 
-    public static function main(array /*Test*/ $tests, array /*TestParameter*/ $params)
+    public static function main(array /*Test*/ $tests, callable $paramsGen)
     {
+        $params = call_user_func($paramsGen);
         $parsedOptions = Console::parseOptions(Console::options());
         $validOptions = Console::validateOptions($parsedOptions, $tests, $params);
 
@@ -186,31 +198,47 @@ class Console
             exit(0);
         }
 
-        $runParams = Console::overrideParameters($parsedOptions["params"], $params);
+        for ($repeat = 0; $repeat < $parsedOptions["n"]; $repeat++) {
+            echo Printer::yellow('Iteration no ' . ($repeat + 1)) . "\n";
+            $runParams = Console::overrideParameters(
+                $parsedOptions["params"],
+                call_user_func($paramsGen)
+            );
 
-        $exit = 0;
-        $testsMap = ArrayHelper::associative($tests, FunctionHelper::callObjMethod('name'));
+            $exit = 0;
+            $testsMap = ArrayHelper::associative($tests, FunctionHelper::callObjMethod('name'));
 
-        foreach (
-            ValueHelper::ifEmpty($parsedOptions['tests'], array_keys($testsMap))
-            as $testName) {
+            foreach (
+                ValueHelper::ifEmpty($parsedOptions['tests'], array_keys($testsMap))
+                as $testName) {
 
-            $test = $testsMap[$testName];
+                $test = $testsMap[$testName];
 
-            echo $test->name() . " ";
-            $result = $test->run($runParams);
+                echo $test->name() . " ";
+                $result = $test->run($runParams);
 
-            if ($result->isFailed()) {
-                $exit = 1;
-                echo Printer::red('[ FAILED ] ') . number_format($result->executionTime(), 2) . " ms\n";
-                echo $result->failMessage() . "\n";
-            } else {
-                echo Printer::green('[ OK ] ') . number_format($result->executionTime(), 2) . " ms\n";
+                if ($result->isFailed()) {
+                    $exit = 1;
+                    echo Printer::red('[ FAILED ] ') . number_format($result->executionTime(), 2) . " ms";
+                    if ($test->timeLimit() !== null
+                        && $result->executionTime() > $test->timeLimit()) {
+                        echo Printer::red(' > ' . $test->timeLimit() . ' ms limit') . "\n";
+                    } else {
+                        echo "\n";
+                    }
+                    echo $result->failMessage() . "\n";
+                } else {
+                    echo Printer::green('[ OK ] ') . number_format($result->executionTime(), 2) . " ms\n";
+                }
+
+                echo "\n";
             }
 
-            echo "\n";
+            if ($exit !== 0) {
+                exit($exit);
+            }
         }
-        
+
         exit($exit);
     }
 }

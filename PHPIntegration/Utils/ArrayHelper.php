@@ -26,4 +26,16 @@ class ArrayHelper
 
         return true;
     }
+
+    public static function onArray(object $object, string $methodName, array $items)
+    {
+        return array_reduce(
+            $items,
+            function($carry, $item) use ($function) {
+                $carry->$methodName($item);
+                return $carry;
+            },
+            $object
+        );
+    }
 }

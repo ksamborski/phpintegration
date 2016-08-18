@@ -21,11 +21,13 @@ $tests = [
     )
 ];
 
-$params = [
-    TestParameter::manyFromParameter("departments", ["Warsaw", "Berlin"], ["Warsaw", "Berlin", "Cracow"]),
-    TestParameter::stringParameter("currency", "PLN"),
-    TestParameter::regexParameter("date", "2015-01-01", "/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/"),
-    TestParameter::arrayOfParameter("hours", [12], '\PHPIntegration\TestParameter::intParameter')
-];
+$params = function() {
+    return [
+        TestParameter::manyFromParameter("departments", ["Warsaw", "Berlin"], ["Warsaw", "Berlin", "Cracow"]),
+        TestParameter::stringParameter("currency", "PLN"),
+        TestParameter::regexParameter("date", "2015-01-01", "/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/"),
+        TestParameter::arrayOfParameter("hours", [12], '\PHPIntegration\TestParameter::intParameter')
+    ];
+};
 
 Console::main($tests, $params);
