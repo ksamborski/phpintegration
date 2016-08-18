@@ -4,6 +4,9 @@ namespace PHPIntegration;
 
 use PHPIntegration\TestParameter;
 use PHPIntegration\Console\Printer;
+use PHPIntegration\Utils\ArrayHelper;
+use PHPIntegration\Utils\FunctionHelper;
+use PHPIntegration\Utils\ValueHelper;
 
 class Console
 {
@@ -69,24 +72,8 @@ class Console
 
     private static function validateOptions(array $parsedOptions, array /*Test*/ $tests, array /*TestParameter*/ $params)
     {
-        $paramsMap = array_reduce(
-            $params,
-            function ($arr, $param) {
-                $arr[$param->name()] = $param;
-                return $arr;
-            },
-            []
-        );
-
-        
-        $testsMap = array_reduce(
-            $tests,
-            function ($arr, $t) {
-                $arr[$t->name()] = $t;
-                return $arr;
-            },
-            []
-        );
+        $paramsMap = ArrayHelper::associative($params, FunctionHelper::callObjMethod('name'));
+        $testsMap = ArrayHelper::associative($tests, FunctionHelper::callObjMethod('name'));
 
         foreach ($parsedOptions["tests"] as $test) {
             if (!array_key_exists($test, $testsMap)) {
@@ -173,14 +160,7 @@ class Console
         array $rawparams,
         array /*TestParameter*/ $params
     ) : array {
-        $paramsMap = array_reduce(
-            $params,
-            function ($arr, $param) {
-                $arr[$param->name()] = $param;
-                return $arr;
-            },
-            []
-        );
+        $paramsMap = ArrayHelper::associative($params, FunctionHelper::callObjMethod('name'));
         $newParams = Console::buildParameters($rawparams, $paramsMap);
 
         $defaultParams = [];
@@ -209,7 +189,14 @@ class Console
         $runParams = Console::overrideParameters($parsedOptions["params"], $params);
 
         $exit = 0;
-        foreach ($tests as $test) {
+        $testsMap = ArrayHelper::associative($tests, FunctionHelper::callObjMethod('name'));
+
+        foreach (
+            ValueHelper::ifEmpty($parsedOptions['tests'], array_keys($testsMap))
+            as $testName) {
+
+            $test = $testsMap[$testName];
+
             echo $test->name() . " ";
             $result = $test->run($runParams);
 

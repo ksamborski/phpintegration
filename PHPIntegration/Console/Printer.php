@@ -48,4 +48,15 @@ class Printer
     {
         return "\033[1;37m" . $text . "\033[0m";
     }
+
+    public static function listValues(array $vals) : string
+    {
+        return array_reduce(
+            $vals,
+            function ($res, $val) {
+                return $res . Printer::green("- ") . $val . "\n";
+            },
+            ""
+        );
+    }
 }
