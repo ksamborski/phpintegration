@@ -4,12 +4,25 @@ namespace PHPIntegration;
 
 use PHPIntegration\TestResult;
 
+/**
+ * Class representing single test case.
+ */
 class Test
 {
     private $id;
     private $runable;
     private $tl;
 
+    /**
+     * Test case constructor.
+     * @param string $id Name of the test
+     * @param callable $run Function running the test,
+     *                      it must take one parameter
+     *                      that is array of
+     *                      parameter name => parameter value
+     * @param int $timeLimit Optional. Execution time limit for test,
+     *                       useful for benchmarking.
+     */
     public function __construct(string $id, callable $run, int $timeLimit = null)
     {
         $this->id = $id;
@@ -17,16 +30,29 @@ class Test
         $this->tl = $timeLimit;
     }
 
+    /**
+     * Returns test name.
+     * @return string Name of the test.
+     */
     public function name() : string
     {
         return $this->id;
     }
 
+    /**
+     * Returns test's time limit.
+     * @return int Test's time limit.
+     */
     public function timeLimit()
     {
         return $this->tl;
     }
 
+    /**
+     * Simply runs the test.
+     * @param array $params Array of parameter name => parameter value
+     * @return \PHPIntegration\TestResult
+     */
     public function run(array $params) : TestResult
     {
         $t1 = microtime(true);

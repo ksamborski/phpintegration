@@ -5,6 +5,11 @@ namespace PHPIntegration;
 use PHPIntegration\Utils\ArrayHelper;
 use PHPIntegration\Console\Printer;
 
+/**
+ * Type representing dynamic parameter. It can have default value that can be
+ * override by user via shell arguments. Parameters are passed to every test
+ * case.
+ */
 class TestParameter
 {
     private $id;
@@ -13,6 +18,21 @@ class TestParameter
     private $rawdef;
     private $builder;
 
+    /**
+     * Constructs parameter.
+     *
+     * @param string $name Name of the parameter.
+     * @param mixed $default Default value of the parameter. It will be used
+     *                        when user won't provide it via shell argument.
+     * @param string $rawDefault User can pass only string via shell so this is
+     *                           string representation of the default value provided above.
+     *                           It's only used for displaying the value for the user.
+     * @param callable $builder Function that should take string representation of the value and
+     *                          return value of the same type as $default is.
+     * @param callable $validator Function that should validate value provided
+     *                            by user. It should return true if it's valid
+     *                            and string with message if something is wrong.
+     */
     public function __construct(
         string $name,
         $default,
@@ -27,31 +47,62 @@ class TestParameter
         $this->rawdef = $rawDefault;
     }
 
+    /**
+     * Name of the parameter.
+     * @return string Parameter's name
+     */
     public function name() : string
     {
         return $this->id;
     }
     
+    /**
+     * Default value of the parameter.
+     * @return string Default value
+     */
     public function default()
     {
         return $this->def;
     }
 
-    public function rawDefault()
+    /**
+     * String representation of the default value..
+     * @return string Default value as string.
+     */
+    public function rawDefault() : string
     {
         return $this->rawdef;
     }
 
+    /**
+     * Validates raw string value provided by user.
+     * It executes the validator function given in the constructor.
+     * @param string $value Value provided by user via shell.
+     * @return string|bool Returns true if everything's fine and string message
+     *                     when something's wrong.
+     */
     public function validate(string $value)
     {
         return call_user_func($this->validator, $value);
     }
     
+    /**
+     * Builds value from string provided by user via shell.
+     * It executes the builder function given in the constructor.
+     * @param string $value Value provided by user via shell.
+     * @return mixed Value of the same type as $default
+     */
     public function build(string $value)
     {
         return call_user_func($this->builder, $value);
     }
 
+    /**
+     * Creates parameter that is an integer.
+     * @param string $name Name of the parameter.
+     * @param int $default Default value of the parameter.
+     * @return \PHPIntegration\TestParameter
+     */
     public static function intParameter(string $name, int $default) : TestParameter
     {
         return new TestParameter(
@@ -71,6 +122,12 @@ class TestParameter
         );
     }
 
+    /**
+     * Creates parameter that is a string. It checks if it's not empty.
+     * @param string $name Name of the parameter.
+     * @param string $default Default value of the parameter.
+     * @return \PHPIntegration\TestParameter
+     */
     public static function stringParameter(string $name, string $default) : TestParameter
     {
         return new TestParameter(
@@ -90,6 +147,14 @@ class TestParameter
         );
     }
 
+    /**
+     * Creates parameter that is a string. It checks if it satisfies provided
+     * regular expression.
+     * @param string $name Name of the parameter.
+     * @param string $default Default value of the parameter.
+     * @param string $regex Regular expression to check in the validate method
+     * @return \PHPIntegration\TestParameter
+     */
     public static function regexParameter(string $name, string $default, string $regex) : TestParameter
     {
         return new TestParameter(
@@ -109,6 +174,14 @@ class TestParameter
         );
     }
 
+    /**
+     * Creates parameter that is a value from list of defined values.
+     * It checks if it belongs to provided array of values.
+     * @param string $name Name of the parameter.
+     * @param string $default Default value of the parameter.
+     * @param array $possibleValues Array of possible values.
+     * @return \PHPIntegration\TestParameter
+     */
     public static function oneFromParameter(string $name, $default, array $possibleValues) : TestParameter
     {
         return new TestParameter(
@@ -128,6 +201,14 @@ class TestParameter
         );
     }
 
+    /**
+     * Creates parameter that is an array of values from the list of defined values.
+     * It checks if every value belongs to provided array of values.
+     * @param string $name Name of the parameter.
+     * @param array $default Default value of the parameter.
+     * @param array $possibleValues Array of possible values.
+     * @return \PHPIntegration\TestParameter
+     */
     public static function manyFromParameter(string $name, array $default, array $possibleValues) : TestParameter
     {
         return new TestParameter(
@@ -156,6 +237,18 @@ class TestParameter
         );
     }
 
+    /**
+     * Creates parameter that is an array of values that are validated by other
+     * instance of \PHPIntegration\TestParameter.
+     * This way you can combine \PHPIntegration\TestParameter instances, for
+     * example arrayOfParameter with regexParameter.
+     * @example examples/basic_example.php
+     * @param string $name Name of the parameter.
+     * @param array $default Default value of the parameter.
+     * @param mixed $testParameter Function that takes parameter's name and
+     *                             default and returns \PHPIntegration\TestParameter
+     * @return \PHPIntegration\TestParameter
+     */
     public static function arrayOfParameter(string $name, array $default, $testParameter) : TestParameter
     {
         $tp = call_user_func($testParameter, $name, $default[0]);

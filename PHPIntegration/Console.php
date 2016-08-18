@@ -8,8 +8,13 @@ use PHPIntegration\Utils\ArrayHelper;
 use PHPIntegration\Utils\FunctionHelper;
 use PHPIntegration\Utils\ValueHelper;
 
+/**
+ * Type representing CLI
+ */
 class Console
 {
+    private function __construct() {}
+
     private static function options() : array
     {
         $short  = "";
@@ -182,6 +187,16 @@ class Console
         return array_merge($defaultParams, $newParams);
     }
 
+    /**
+     * Main loop of your testing script. It takes care of arguments and bunch
+     * of options passing to the script. It will set exit code to 1 if one of 
+     * the tests failed or 0 when all succeeded.
+     *
+     * @param array $tests Array of \PHPIntegration\Test that can be run
+     * @param callable $paramsGen Function that should return array of \PHPIntegration\TestParameter.
+     *                            It is function because test parameters can be random and otherwise
+     *                            next iterations would get the same parameters as first one.
+     */
     public static function main(array /*Test*/ $tests, callable $paramsGen)
     {
         $params = call_user_func($paramsGen);
