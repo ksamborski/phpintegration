@@ -3,6 +3,7 @@
     "require": {
         "php": ">=7.0.0"
     },
+    "license": "MIT",
     "autoload": {
         "psr-4" : {
             "PHPIntegration\\" : "PHPIntegration"
