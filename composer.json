@@ -1,5 +1,5 @@
 {
-    "name": "ksamborski/PHPIntegration",
+    "name": "ksamborski/php-integration",
     "version": "0.1",
     "require": {
         "php": ">=7.0.0"
