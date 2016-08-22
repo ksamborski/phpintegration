@@ -222,10 +222,11 @@ class TestParameter
             function ($val) use ($possibleValues) {
                 if (preg_match("/^[\\[].+[\\]]$/", $val) === 1) {
                     if (ArrayHelper::every(
-                            function($v) use ($possibleValues) {
-                                return in_array($v, $possibleValues);
-                            },
-                            explode(',', substr($val, 1, -1)))) {
+                        function ($v) use ($possibleValues) {
+                            return in_array($v, $possibleValues);
+                        },
+                        explode(',', substr($val, 1, -1))
+                    )) {
                         return true;
                     } else {
                         return "One of the items is not correct. Possible values are:\n"
@@ -265,7 +266,7 @@ class TestParameter
                 if (preg_match("/^[\\[].+[\\]]$/", $val) === 1) {
                     $errors = array_filter(
                         array_map([$tp, 'validate'], explode(',', substr($val, 1, -1))),
-                        function($v) {
+                        function ($v) {
                             return $v !== true;
                         }
                     );
@@ -296,7 +297,9 @@ class TestParameter
             $name,
             $default,
             $default->asStringParameter(),
-            function($val) use ($default) { return $default->build($val); },
+            function ($val) use ($default) {
+                return $default->build($val);
+            },
             function ($val) use ($default, $valid) {
                 return $default->validate($val, $valid);
             }

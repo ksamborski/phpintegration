@@ -13,7 +13,9 @@ use PHPIntegration\Utils\ValueHelper;
  */
 class Console
 {
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     private static function options() : array
     {
@@ -48,70 +50,73 @@ class Console
 
         foreach ($options as $optname => $optval) {
             switch ($optname) {
-            case "p":
-            case "parameter":
-                if (is_array($optval)) {
-                    $parsedOptions["params"] = array_map(
-                        Console::parseParameterValue,
-                        $optval
-                    );
-                } else {
-                    $parsedOptions["params"] = [Console::parseParameterValue($optval)];
-                }
-                break;
-            case "t":
-            case "test":
-                if (is_array($optval)) {
-                    $parsedOptions["tests"] = $optval;
-                } else {
-                    $parsedOptions["tests"] = [$optval];
-                }
-                break;
-            case "n":
-                $parsedOptions["n"] = $optval;
-                break;
-            case "h":
-            case "help":
-                $parsedOptions["help"] = true;
-                break;
+                case "p":
+                case "parameter":
+                    if (is_array($optval)) {
+                        $parsedOptions["params"] = array_map(
+                            Console::parseParameterValue,
+                            $optval
+                        );
+                    } else {
+                        $parsedOptions["params"] = [Console::parseParameterValue($optval)];
+                    }
+                    break;
+                case "t":
+                case "test":
+                    if (is_array($optval)) {
+                        $parsedOptions["tests"] = $optval;
+                    } else {
+                        $parsedOptions["tests"] = [$optval];
+                    }
+                    break;
+                case "n":
+                    $parsedOptions["n"] = $optval;
+                    break;
+                case "h":
+                case "help":
+                    $parsedOptions["help"] = true;
+                    break;
             }
         }
 
         return $parsedOptions;
     }
 
-    private static function validateOptions(array $parsedOptions, array /*Test*/ $tests, array /*TestParameter*/ $params)
-    {
+    private static function validateOptions(
+        array $parsedOptions,
+        array /*Test*/ $tests,
+        array /*TestParameter*/ $params
+    ) {
         $paramsMap = ArrayHelper::associative($params, FunctionHelper::callObjMethod('name'));
         $testsMap = ArrayHelper::associative($tests, FunctionHelper::callObjMethod('name'));
 
         foreach ($parsedOptions["tests"] as $test) {
             if (!array_key_exists($test, $testsMap)) {
                 return "Bad test name: " . $test . "\n"
-                     . "Available test are: \n"
-                     . array_reduce(
-                         $tests,
-                         function ($r, $t) {
-                             return $r . "- " . $t->name() . "\n";
-                         },
-                         ""
-                       );
+                    . "Available test are: \n"
+                    . array_reduce(
+                        $tests,
+                        function ($r, $t) {
+                            return $r . "- " . $t->name() . "\n";
+                        },
+                        ""
+                    );
             }
         }
 
         foreach ($parsedOptions["params"] as $param) {
             if (count($param) != 2) {
                 return "Bad parameter format: " . $param[0] . ", it must be `param_name:param_value`\n";
-            } else if (!array_key_exists($param[0], $paramsMap)) {
+            } elseif (!array_key_exists($param[0], $paramsMap)) {
                 return "Bad parameter name: " . $param[0] . "\n"
-                     . "Available params are: \n"
-                     . array_reduce(
-                         $params,
-                         function ($r, $p) {
-                             return $r . "- " . $p->name() . "\n";
-                         },
-                         ""
-                       );
+                    . "Available params are: \n"
+                    . array_reduce(
+                        $params,
+                        function ($r, $p) {
+                            return $r . "- " . $p->name() . "\n";
+                        },
+                        ""
+                    );
             }
 
             $validParam = $paramsMap[$param[0]]->validate($param[1]);
@@ -132,39 +137,38 @@ class Console
     {
         global $argv;
         return Printer::yellow("Usage:") . " php " . $argv[0] . " [OPTIONS]\n\n"
-             . Printer::green("  -t, --test TEST_NAME ")
-             . "\t\t\t\t\t Run only given tests (you can pass multiple -t option) \n"
-             . Printer::green("  -p, --parameter PARAMETER_NAME:PARAMETER_VALUE ")
-             . "\t Set test parameter (you can pass multiple -p option) \n"
-             . Printer::green("  -n ")
-             . "\t\t\t\t\t\t\t Number of repeats \n\n"
-             . Printer::green("  -h, --help ")
-             . "\t\t\t\t\t\t Show this help\n\n"
-             . Printer::yellow("Available tests:\n")
-             . array_reduce(
-                   $tests,
-                   function ($r, $t) {
-                       return $r . "- " . $t->name() . "\n";
-                   },
-                   ""
-               )
-             . Printer::yellow("\nAvailable parameters:\n")
-             . array_reduce(
-                   $params,
-                   function ($r, $p) {
-                       return $r . "- " . $p->name() . " \n  "
-                            . Printer::red("Default: ") . $p->rawDefault() . "\n";
-                   },
-                   ""
-               );
-             ;
+            . Printer::green("  -t, --test TEST_NAME ")
+            . "\t\t\t\t\t Run only given tests (you can pass multiple -t option) \n"
+            . Printer::green("  -p, --parameter PARAMETER_NAME:PARAMETER_VALUE ")
+            . "\t Set test parameter (you can pass multiple -p option) \n"
+            . Printer::green("  -n ")
+            . "\t\t\t\t\t\t\t Number of repeats \n\n"
+            . Printer::green("  -h, --help ")
+            . "\t\t\t\t\t\t Show this help\n\n"
+            . Printer::yellow("Available tests:\n")
+            . array_reduce(
+                $tests,
+                function ($r, $t) {
+                    return $r . "- " . $t->name() . "\n";
+                },
+                ""
+            )
+            . Printer::yellow("\nAvailable parameters:\n")
+            . array_reduce(
+                $params,
+                function ($r, $p) {
+                    return $r . "- " . $p->name() . " \n  "
+                        . Printer::red("Default: ") . $p->rawDefault() . "\n";
+                },
+                ""
+            );
     }
 
     private static function buildParameters(array $rawparams, array $paramsMap)
     {
         return array_reduce(
             $rawparams,
-            function($res, $p) use ($paramsMap) {
+            function ($res, $p) use ($paramsMap) {
                 $res[$p[0]] = $paramsMap[$p[0]]->build($p[1]);
                 return $res;
             },
@@ -197,7 +201,7 @@ class Console
 
     /**
      * Main loop of your testing script. It takes care of arguments and bunch
-     * of options passing to the script. It will set exit code to 1 if one of 
+     * of options passing to the script. It will set exit code to 1 if one of
      * the tests failed or 0 when all succeeded.
      *
      * @param array $tests Array of \PHPIntegration\Test that can be run
@@ -223,10 +227,7 @@ class Console
 
         $testsMap = ArrayHelper::associative($tests, FunctionHelper::callObjMethod('name'));
 
-        foreach (
-            ValueHelper::ifEmpty($parsedOptions['tests'], array_keys($testsMap))
-            as $testName) {
-
+        foreach (ValueHelper::ifEmpty($parsedOptions['tests'], array_keys($testsMap)) as $testName) {
             $exit = 0;
             $avg = 0;
             for ($repeat = 0; $repeat < $parsedOptions["n"]; $repeat++) {
@@ -264,7 +265,7 @@ class Console
                                 array_keys($runParams['rawparams']),
                                 $runParams['rawparams']
                             )
-                        ); 
+                        );
                     echo Printer::yellow("Message: \n");
                     echo $result->failMessage() . "\n";
                 } else {
