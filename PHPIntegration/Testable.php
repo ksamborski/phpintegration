@@ -19,10 +19,11 @@ interface Testable
      * This method should validate string given by user from CLI before
      * building it.
      * @param string $value - string given by user
+     * @param bool $valid - whether to validate for valid or invalid object
      * @return mixed - true if validation succeeded and string with useful
      *                 message otherwise
      */
-    public static function validate(string $value);
+    public static function validate(string $value, bool $valid = true);
 
     /**
      * This method should generate string representing object that user can

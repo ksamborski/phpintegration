@@ -287,16 +287,19 @@ class TestParameter
      * \PHPIntegration\Testable.
      * @param string $name Name of the parameter.
      * @param \PHPIntegration\Testable Object that will be taken as default.
+     * @param bool $valid Whether to test for valid or invalid object.
      * @return \PHPIntegration\TestParameter
      */
-    public static function objectParameter(string $name, Testable $default)
+    public static function objectParameter(string $name, Testable $default, bool $valid = true)
     {
         return new TestParameter(
             $name,
             $default,
             $default->asStringParameter(),
             function($val) use ($default) { return $default->build($val); },
-            function ($val) use ($default) { return $default->validate($val); }
+            function ($val) use ($default, $valid) {
+                return $default->validate($val, $valid);
+            }
         );
     }
 }

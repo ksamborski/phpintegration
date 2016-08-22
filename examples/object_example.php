@@ -38,13 +38,21 @@ class TestObject implements Randomizable, Testable
         return new TestObject($value);
     }
 
-    public static function validate(string $value)
+    public static function validate(string $value, bool $valid = true)
     {
         $fstLetter = substr($value, 0, 1);
-        if (strtolower($fstLetter) == $fstLetter) {
-            return "Value must start from upper case.\n";
+        if ($valid === true) {
+            if (strtolower($fstLetter) == $fstLetter) {
+                return "Value must start from upper case.\n";
+            } else {
+                return true;
+            }
         } else {
-            return true;
+            if (strtolower($fstLetter) == $fstLetter) {
+                return true;
+            } else {
+                return "Value must not start from upper case.\n";
+            }
         }
     }
 
@@ -67,7 +75,8 @@ class TestObject implements Randomizable, Testable
 $params = function() {
     return [
         TestParameter::objectParameter("first name", new TestObject("John")),
-        TestParameter::objectParameter("random name", RandomHelper::randomObject(new TestObject("")))
+        TestParameter::objectParameter("random name", RandomHelper::randomObject(new TestObject(""))),
+        TestParameter::objectParameter("invalid name", RandomHelper::randomObject(new TestObject(""), false), false)
     ];
 };
 
