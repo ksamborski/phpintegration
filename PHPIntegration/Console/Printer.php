@@ -98,6 +98,14 @@ class Printer
     }
 
     /**
+     * Return an escape code that clears whole line.
+     */
+    public static function clearLine()
+    {
+        return "\033[1K";
+    }
+
+    /**
      * Returns a text that will list all values from the given array.
      * @param array $vals Values to list
      * @return string Encoded string recognized by the terminal.

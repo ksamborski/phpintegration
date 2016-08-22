@@ -10,6 +10,7 @@ $tests = [
     new Test(
         "Simple test 1",
         function($p) {
+            usleep(rand(10000, 100000));
             return true;
         }
     ),

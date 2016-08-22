@@ -184,7 +184,15 @@ class Console
             $defaultParams[$p->name()] = $p->default();
         }
 
-        return array_merge($defaultParams, $newParams);
+        $defaultRawParams = [];
+        foreach ($paramsMap as $pname => $p) {
+            $defaultRawParams[$p->name()] = $p->rawDefault();
+        }
+
+        return [
+            "params" => array_merge($defaultParams, $newParams),
+            "rawparams" => array_merge($defaultRawParams, $rawparams)
+        ];
     }
 
     /**
@@ -213,24 +221,30 @@ class Console
             exit(0);
         }
 
-        for ($repeat = 0; $repeat < $parsedOptions["n"]; $repeat++) {
-            echo Printer::yellow('Iteration no ' . ($repeat + 1)) . "\n";
-            $runParams = Console::overrideParameters(
-                $parsedOptions["params"],
-                call_user_func($paramsGen)
-            );
+        $testsMap = ArrayHelper::associative($tests, FunctionHelper::callObjMethod('name'));
+
+        foreach (
+            ValueHelper::ifEmpty($parsedOptions['tests'], array_keys($testsMap))
+            as $testName) {
 
             $exit = 0;
-            $testsMap = ArrayHelper::associative($tests, FunctionHelper::callObjMethod('name'));
-
-            foreach (
-                ValueHelper::ifEmpty($parsedOptions['tests'], array_keys($testsMap))
-                as $testName) {
+            $avg = 0;
+            for ($repeat = 0; $repeat < $parsedOptions["n"]; $repeat++) {
+                $runParams = Console::overrideParameters(
+                    $parsedOptions["params"],
+                    call_user_func($paramsGen)
+                );
 
                 $test = $testsMap[$testName];
 
-                echo $test->name() . " ";
-                $result = $test->run($runParams);
+                echo Printer::clearLine();
+                echo "\r" . $test->name() . " ";
+                if ($parsedOptions["n"] > 1) {
+                    echo Printer::yellow(($repeat + 1) . "/" . $parsedOptions["n"]) . " ";
+                }
+                $result = $test->run($runParams['params']);
+
+                $avg += $result->executionTime();
 
                 if ($result->isFailed()) {
                     $exit = 1;
@@ -241,17 +255,30 @@ class Console
                     } else {
                         echo "\n";
                     }
+                    echo Printer::yellow("Parameters: \n")
+                        . Printer::listValues(
+                            array_map(
+                                function ($k, $v) {
+                                    return $k . ":" . $v;
+                                },
+                                array_keys($runParams['rawparams']),
+                                $runParams['rawparams']
+                            )
+                        ); 
+                    echo Printer::yellow("Message: \n");
                     echo $result->failMessage() . "\n";
                 } else {
-                    echo Printer::green('[ OK ] ') . number_format($result->executionTime(), 2) . " ms\n";
+                    echo Printer::green('[ OK ] ') . number_format($result->executionTime(), 2) . " ms";
+                    if ($parsedOptions["n"] > 1) {
+                        echo ", avg. " . number_format($avg / ($repeat + 1), 2) . " ms";
+                    }
                 }
 
-                echo "\n";
+                if ($exit > 0) {
+                    exit($exit);
+                }
             }
-
-            if ($exit !== 0) {
-                exit($exit);
-            }
+            echo "\n\n";
         }
 
         exit($exit);
