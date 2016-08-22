@@ -193,9 +193,24 @@ class Console
             $defaultRawParams[$p->name()] = $p->rawDefault();
         }
 
+        $rawAssoc = array_combine(
+            array_map(
+                function ($r) {
+                    return $r[0];
+                },
+                $rawparams
+            ),
+            array_map(
+                function ($r) {
+                    return $r[1];
+                },
+                $rawparams
+            )
+        );
+
         return [
             "params" => array_merge($defaultParams, $newParams),
-            "rawparams" => array_merge($defaultRawParams, $rawparams)
+            "rawparams" => array_merge($defaultRawParams, $rawAssoc)
         ];
     }
 
@@ -276,10 +291,15 @@ class Console
                 }
 
                 if ($exit > 0) {
-                    exit($exit);
+                    break;
                 }
             }
-            echo "\n\n";
+
+            if ($exit === 0) {
+                echo "\n\n";
+            } else {
+                echo "\n";
+            }
         }
 
         exit($exit);
