@@ -2,6 +2,8 @@
 
 namespace PHPIntegration\Utils;
 
+use \PHPIntegration\Randomizable;
+
 /**
  * Bunch of useful random generators.
  */
@@ -100,5 +102,20 @@ class RandomHelper
         }
 
         return $arr;
+    }
+
+    /**
+     * Generates random object. It can be valid and invalid.
+     * @param \PHPIntegration\Randomizable $obj Type of object to generate.
+     * @param bool $valid Whether to generate valid or invalid object.
+     * @return object
+     */
+    public static function randomObject(Randomizable $obj, bool $valid = true)
+    {
+        if ($valid === true) {
+            return $obj->randomValid();
+        } else {
+            return $obj->randomInvalid();
+        }
     }
 }

@@ -4,6 +4,7 @@ namespace PHPIntegration;
 
 use PHPIntegration\Utils\ArrayHelper;
 use PHPIntegration\Console\Printer;
+use PHPIntegration\Testable;
 
 /**
  * Type representing dynamic parameter. It can have default value that can be
@@ -66,7 +67,7 @@ class TestParameter
     }
 
     /**
-     * String representation of the default value..
+     * String representation of the default value.
      * @return string Default value as string.
      */
     public function rawDefault() : string
@@ -278,6 +279,24 @@ class TestParameter
                     return "Value must form an array, for example [val1, val2].\n";
                 }
             }
+        );
+    }
+
+    /**
+     * Function creates object parameter. It must be an instance of
+     * \PHPIntegration\Testable.
+     * @param string $name Name of the parameter.
+     * @param \PHPIntegration\Testable Object that will be taken as default.
+     * @return \PHPIntegration\TestParameter
+     */
+    public static function objectParameter(string $name, Testable $default)
+    {
+        return new TestParameter(
+            $name,
+            $default,
+            $default->asStringParameter(),
+            function($val) use ($default) { return $default->build($val); },
+            function ($val) use ($default) { return $default->validate($val); }
         );
     }
 }

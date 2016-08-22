@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPIntegration\Utils;
+namespace PHPIntegration;
 
 /**
  * Interface representing type that can be random generated.
