@@ -46,7 +46,7 @@ class RandomHelper
      */
     public static function randomOneOf(array $possibleValues)
     {
-        return RandomHelper::randomArray($possibleValue, false, 1, 1)[0];
+        return RandomHelper::randomArray($possibleValues, false, 1, 1)[0];
     }
 
     /**
