@@ -33,9 +33,23 @@ class RandomHelper
      */
     public static function randomEmail() : string
     {
-        $p1 = trim(self::randomString(rand(10, 50), '0123456789abcdefghijklmnopqrstuvwxyz-._'), '-._');
-        $p2 = trim(self::randomString(rand(4, 8), '0123456789abcdefghijklmnopqrstuvwxyz-_'), '-_');
-        $dot = trim(self::randomString(rand(4, 8), '0123456789abcdefghijklmnopqrstuvwxyz-_'), '-_');
+        $p1 = preg_replace(
+            '/[_\-.]{2,}/',
+            self::randomString(1, '-_.'),
+            trim(
+                self::randomString(rand(10, 50), '0123456789abcdefghijklmnopqrstuvwxyz-._'),
+                '-._'
+            )
+        );
+        $p2 = preg_replace(
+            '/[\-]{2,}/',
+            '-',
+            trim(
+                self::randomString(rand(4, 8), '0123456789abcdefghijklmnopqrstuvwxyz-'),
+                '-'
+            )
+        );
+        $dot = self::randomString(rand(2, 4), 'abcdefghijklmnopqrstuvwxyz');
         return $p1 . '@' . $p2 . '.' . $dot;
     }
 
