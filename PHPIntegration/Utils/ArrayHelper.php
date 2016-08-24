@@ -2,6 +2,8 @@
 
 namespace PHPIntegration\Utils;
 
+use PHPIntegration\Utils\Interfaces\Eq;
+
 /**
  * Bunch of useful function when working with arrays.
  */
@@ -63,5 +65,81 @@ class ArrayHelper
             },
             $object
         );
+    }
+
+    /**
+     * Checks if two arrays are the same. If some value is an
+     * object it will execute \PHPIntegration\Utils\ObjectHelper::equal for
+     * comparision unless it is an instance of
+     * \PHPIntegration\Utils\Interfaces\Eq, then it will call equal method from
+     * the interface. And if some is an array it will recur. 
+     * @param array $a First object to test
+     * @param array $b Second object to test
+     * @param array $ignored Properties names to skip
+     * @return mixed True if objects are equal and array with path and error string otherwise.
+     */
+    public static function equal(array $a, array $b, array $ignored = [])
+    {
+        $fieldsA = array_filter(
+            $a,
+            function ($key) use ($ignored) {
+                return !in_array($key, $ignored);
+            },
+            ARRAY_FILTER_USE_KEY
+        );
+        $fieldsB = array_filter(
+            $b,
+            function ($key) use ($ignored) {
+                return !in_array($key, $ignored);
+            },
+            ARRAY_FILTER_USE_KEY
+        );
+
+        if (count($fieldsA) !== count($fieldsB)) {
+            return [
+                [],
+                'Arrays have different number of elements: '
+                . $count($fieldsA) . ' to ' . count($fieldsB)
+            ];
+        } elseif (!empty(array_diff_key($fieldsA, $fieldsB))) {
+            return [
+                [],
+                'Second array is missing keys: '
+                . join(', ', array_diff_key($fieldsA, $fieldsB))
+            ];
+        }
+
+        foreach ($fieldsA as $name => $value) {
+            if ($value instanceof Eq && $b[$name] instanceof Eq) {
+                $result = $value->equal($value, $b[$name]);
+                if ($result !== true) {
+                    if (is_array($result)) {
+                        array_unshift($result[0], '[' . $name . ']');
+                        return $result;
+                    } else {
+                        return [ ['[' . $name . ']'], 'Objects aren\'t equal' ];
+                    }
+                }
+            } elseif (is_object($value) && is_object($b[$name])) {
+                $result = ObjectHelper::equal($value, $b[$name]);
+                if ($result !== true) {
+                    array_unshift($result[0], '[' . $name . ']');
+                    return $result;
+                }
+            } elseif (is_array($value) && is_array($b[$name])) {
+                $result = self::equal($value, $b[$name]);
+                if ($result !== true) {
+                    array_unshift($result[0], '[' . $name . ']');
+                    return $result;
+                }
+            } elseif ($value !== $b[$name]) {
+                return [
+                    ['[' . $name . ']'],
+                    'Value ' . var_export($value, true) . ' (' . gettype($value) . ') != '
+                    . var_export($b[$name], true) . ' (' . gettype($b[$name]) . ')'
+                ];
+            }
+        }
+        return true;
     }
 }
