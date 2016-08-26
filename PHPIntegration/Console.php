@@ -54,7 +54,7 @@ class Console
                 case "parameter":
                     if (is_array($optval)) {
                         $parsedOptions["params"] = array_map(
-                            Console::parseParameterValue,
+                            '\PHPIntegration\Console::parseParameterValue',
                             $optval
                         );
                     } else {

@@ -1,3 +1,9 @@
+## 0.3.1
+
+Bugfixes:
+
+  - fixed passing multiple parameters
+
 ## 0.3
 
 Features:
