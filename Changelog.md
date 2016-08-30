@@ -1,3 +1,12 @@
+## 0.4
+
+Features:
+
+  - RandomHelper::randomDate
+  - TreeHelper class for path generation
+  - ArrayHelper::unsetPath and ArrayHelper::updatePath for working with paths
+  - paths example in the examples folder
+
 ## 0.3.1
 
 Bugfixes:
