@@ -1,6 +1,8 @@
 # phpintegration
 PHP library for writing automated tests. It can help you get started especially when you do TDD and value randomized testing.
 
+![Build Status](https://travis-ci.org/ksamborski/phpintegration.svg?branch=master)
+
 ## Installation
 
 ```bash
