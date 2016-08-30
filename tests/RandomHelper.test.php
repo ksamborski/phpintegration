@@ -94,4 +94,39 @@ class RandomHelperTest extends TestCase
             $this->assertTrue(in_array($item, $possibleValues));
         }
     }
+
+    public function testRandomDate()
+    {
+        $results = [];
+        $format = 'Y-m-d';
+        for ($i = 0; $i < 10000; $i++) {
+            $date = RandomHelper::randomDate();
+            $vDate = \DateTime::createFromFormat($format, $date);
+            $this->assertEquals($date, $vDate->format($format), 'Invalid date');
+            $results[] = $date;
+        }
+
+        $maxDuplicates = 3;
+        $counted = [];
+        foreach ($results as $date) {
+            if (array_key_exists($date, $counted)) {
+                $counted[$date]++;
+            } else {
+                $counted[$date] = 1;
+            }
+        }
+        $this->assertTrue($maxDuplicates >= max($counted),
+            'Too many duplicated entries: ' . max($counted));
+
+        $dateFrom = new \DateTime('2000-01-01 00:00:00');
+        $dateTo = new \DateTime('2001-06-30 23:59:59');
+        for ($i = 0; $i < 10000; $i++) {
+            $date = RandomHelper::randomDate($dateFrom->format($format),
+                $dateTo->format($format));
+            $vDate = \DateTime::createFromFormat($format, $date);
+            $this->assertTrue(($vDate->getTimestamp() >= $dateFrom->getTimestamp())
+                && ($vDate->getTimestamp() <= $dateTo->getTimestamp())
+                , 'Date out of bounds');
+        }
+    }
 }
