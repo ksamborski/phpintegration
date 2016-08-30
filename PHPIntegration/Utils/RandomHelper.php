@@ -10,7 +10,7 @@ use \PHPIntegration\Randomizable;
 class RandomHelper
 {
     /**
-     * Generates rundom string.
+     * Generates random string.
      * @param int $length Length of the string
      * @param string $characters Characters that can appear in the string
      * @return string Random string
@@ -131,5 +131,29 @@ class RandomHelper
         } else {
             return $obj->randomInvalid();
         }
+    }
+
+    /**
+     * Generates random date.
+     * @param string Lower bound (inclusive).
+     * @param string Upper bound (inclusive).
+     * @return object
+     */
+    public static function randomDate($lowerBound = '0001-01-01', $upperBound = '9999-12-31')
+    {
+        $format = 'Y-m-d';
+        $lowerBound = \DateTime::createFromFormat($format, $lowerBound);
+        $upperBound = \DateTime::createFromFormat($format, $upperBound);
+
+        if (!$lowerBound || !$upperBound) {
+            throw new \Exception('Invalid date format');
+        }
+
+        $randTimestamp = mt_rand($lowerBound->getTimestamp(), $upperBound->getTimestamp());
+
+        $randomDate = new \DateTime();
+        $randomDate->setTimestamp($randTimestamp);
+
+        return $randomDate->format($format);
     }
 }
