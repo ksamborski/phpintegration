@@ -12,13 +12,13 @@ use PHPIntegration\Randomizable;
 $tests = [
     new Test(
         "First name test",
-        function($p) {
+        function ($p) {
             return "Hello " . $p["first name"]->name . "!";
         }
     ),
     new Test(
         "Random name test",
-        function($p) {
+        function ($p) {
             return "Hello " . $p["random name"]->name . "! It can't be real name...";
         }
     )
@@ -72,7 +72,7 @@ class TestObject implements Randomizable, Testable
     }
 }
 
-$params = function() {
+$params = function () {
     return [
         TestParameter::objectParameter("first name", new TestObject("John")),
         TestParameter::objectParameter("random name", RandomHelper::randomObject(new TestObject(""))),

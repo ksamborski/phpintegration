@@ -11,7 +11,7 @@ use PHPIntegration\Utils\RandomHelper;
 $tests = [
     new Test(
         "Warsaw test",
-        function($p) {
+        function ($p) {
             if (!in_array('Warsaw', $p['departments'])) {
                 return "this test succeeds only if Warsaw is passed";
             } else {
@@ -21,7 +21,7 @@ $tests = [
     ),
     new Test(
         "Failing test",
-        function($p) {
+        function ($p) {
             usleep(20000);
             return "this is a test that always fails";
         },
@@ -29,7 +29,7 @@ $tests = [
     )
 ];
 
-$params = function() {
+$params = function () {
     return [
         TestParameter::manyFromParameter(
             "departments",

@@ -259,3 +259,7 @@ Value must start from upper case.
 Randomizable is much simpler. There are only 2 methods. One for generating object with valid data. For example when it would be a database connection string it would point to the existing database. And the other one for invalid data (for instance connection string to not existing database).
 
 You can randomize object with randomObject method from the RandomHelper class. To use object as a parameter you need to use objectParameter method from the TestParameter class.
+
+## Other things
+
+You should definitely check the examples folder.

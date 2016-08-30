@@ -9,6 +9,10 @@ use PHPIntegration\Utils\Interfaces\Eq;
  */
 class ArrayHelper
 {
+    const ARRAY_TAKE_RANDOM = 1;
+    const ARRAY_TAKE_ALL = 2;
+    const ARRAY_TAKE_NONE = 3;
+
     /**
      * Creates associative array from number ordered one. This is useful when
      * you have array of objects and you need to check if value is in the
@@ -142,4 +146,134 @@ class ArrayHelper
         }
         return true;
     }
+
+    /**
+     * Function unsets array element lying in the path. There are few caveats
+     * when path contains only string elements. If somewhere in the array there
+     * is no current path element but the current array contains only integer
+     * keys then depending on the flag argument it will:
+     *   - go to random element of the current array and try unset there (ARRAY_TAKE_RANDOM)
+     *   - go to every element of the current array and try unset there (ARRAY_TAKE_ALL)
+     *   - fail (ARRAY_TAKE_NONE)
+     * This way we can provide path, for example ["key1", 0, "key2"] and unset
+     * the exact array["key1"][0]["key2"] or we can just give ["key1", "key2"] and
+     * unset random second dimension of the array (for instance
+     * array["key1"][12]["key2"]) or all values at second dimension.
+     * @param array $path Path to unset, you may consider using PHPIntegration\Utils\TreeHelper::randomPath.
+     * @param array $arr Array to unset element from.
+     * @param int $flag What to do when there are no numeric key in the path
+     *                  but there are only numeric keys in the array:
+     *                  ARRAY_TAKE_RANDOM - try unset random element
+     *                  ARRAY_TAKE_ALL - try unset every element
+     *                  ARRAY_TAKE_NONE - don't unset anything
+     * @return bool True when at least one element was unset and false otherwise.
+     */
+    public static function unsetPath(array $path, array &$arr, int $flag = self::ARRAY_TAKE_RANDOM) : bool
+    {
+        if (empty($path)) {
+            return true;
+        } elseif (empty($arr)) {
+            return false;
+        }
+
+        $key = array_shift($path);
+
+        if (array_key_exists($key, $arr)) {
+            if (empty($path)) {
+                unset($arr[$key]);
+                return true;
+            } else {
+                return self::unsetPath($path, $arr[$key], $flag);
+            }
+        } elseif (is_string($key)
+            && count(array_filter($arr, 'is_int', ARRAY_FILTER_USE_KEY)) == count($arr)) {
+            switch ($flag) {
+                case self::ARRAY_TAKE_RANDOM:
+                    array_unshift($path, $key);
+                    $idxs = array_keys($arr);
+                    shuffle($idxs);
+                    foreach ($idxs as $i) {
+                        if (self::unsetPath($path, $arr[$i], $flag)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                case self::ARRAY_TAKE_ALL:
+                    array_unshift($path, $key);
+                    $res = false;
+                    foreach ($arr as &$v) {
+                        $res = self::unsetPath($path, $v, $flag) || $res;
+                    }
+                    return $res;
+                case self::ARRAY_TAKE_NONE:
+                    return false;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Function calls callback on array element lying in the path and replaces
+     * it with callback return value. Same rules apply as in
+     * PHPIntegration\Utils\ArrayHelper::unsetPath.
+     * @param array $path Path to element to update, you may consider using
+     *                    PHPIntegration\Utils\TreeHelper::randomPath.
+     * @param array $arr Array to update element from.
+     * @param int $flag What to do when there are no numeric key in the path
+     *                  but there are only numeric keys in the array:
+     *                  ARRAY_TAKE_RANDOM - try update random element
+     *                  ARRAY_TAKE_ALL - try update every element
+     *                  ARRAY_TAKE_NONE - don't update anything
+     * @return bool True when at least one element was updated and false otherwise.
+     */
+    public static function updatePath(
+        array $path,
+        array &$arr,
+        callable $callback,
+        int $flag = self::ARRAY_TAKE_RANDOM
+    ) : bool {
+        if (empty($path)) {
+            return true;
+        } elseif (empty($arr)) {
+            return false;
+        }
+
+        $key = array_shift($path);
+
+        if (array_key_exists($key, $arr)) {
+            if (empty($path)) {
+                $arr[$key] = call_user_func($callback, $arr[$key]);
+                return true;
+            } else {
+                return self::updatePath($path, $arr[$key], $callback, $flag);
+            }
+        } elseif (is_string($key)
+            && count(array_filter($arr, 'is_int', ARRAY_FILTER_USE_KEY)) == count($arr)) {
+            switch ($flag) {
+                case self::ARRAY_TAKE_RANDOM:
+                    array_unshift($path, $key);
+                    $idxs = array_keys($arr);
+                    shuffle($idxs);
+                    foreach ($idxs as $i) {
+                        if (self::updatePath($path, $arr[$i], $callback, $flag)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                case self::ARRAY_TAKE_ALL:
+                    array_unshift($path, $key);
+                    $res = false;
+                    foreach ($arr as &$v) {
+                        $res = self::updatePath($path, $v, $callback, $flag) || $res;
+                    }
+                    return $res;
+                case self::ARRAY_TAKE_NONE:
+                    return false;
+            }
+        }
+
+        return false;
+    }
 }
+

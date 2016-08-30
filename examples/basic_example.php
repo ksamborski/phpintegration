@@ -9,20 +9,20 @@ use PHPIntegration\Console;
 $tests = [
     new Test(
         "Simple test 1",
-        function($p) {
+        function ($p) {
             usleep(rand(10000, 100000));
             return true;
         }
     ),
     new Test(
         "Failing test",
-        function($p) {
+        function ($p) {
             return "this is a test that always fails";
         }
     )
 ];
 
-$params = function() {
+$params = function () {
     return [
         TestParameter::manyFromParameter("departments", ["Warsaw", "Berlin"], ["Warsaw", "Berlin", "Cracow"]),
         TestParameter::stringParameter("currency", "PLN"),
