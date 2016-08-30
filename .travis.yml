@@ -1,0 +1,12 @@
+language: php
+
+php:
+  - '7.0'
+
+install:
+  - composer install
+
+before_script:
+  - cd tests
+
+script: phpunit --test-suffix test.php .
