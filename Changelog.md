@@ -1,3 +1,9 @@
+## 0.4.1
+
+Bugfixes:
+
+  - fixed setting bad status code when last test succeeded and at least one of the earlier tests failed
+
 ## 0.4
 
 Features:
