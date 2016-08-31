@@ -21,6 +21,7 @@ use PHPIntegration\Console;
 
 $tests = [
     new Test(
+        "Test1",
         "Simple test 1",
         function($p) {
             usleep(rand(10000, 100000));
@@ -28,6 +29,7 @@ $tests = [
         }
     ),
     new Test(
+        "Test2",
         "Failing test",
         function($p) {
             return "this is a test that always fails";
@@ -36,7 +38,7 @@ $tests = [
 ];
 
 ```
-Test is a simple object that has a name and a function that receives parameters. Don't worry about it now, we will cover it later. That function is your test, it should return true when everything's ok and some message explaining what is wrong otherwise.
+Test is a simple object that has a name, a description and a function that receives parameters. Don't worry about it now, we will cover it later. That function is your test, it should return true when everything's ok and some message explaining what is wrong otherwise.
 
 Now to avoid changing test code when something fails let's introduce dynamic parameters:
 ```php
@@ -98,6 +100,7 @@ OK, but how to use them in a test? Remember the $p argument in tests that we def
 
 ```php
 new Test(
+        "Test1",
         "Simple test 1",
         function($p) {
             return $p['currency'];
@@ -183,6 +186,7 @@ The n parameter to the script tells it to repeat execution of every test n times
 
 ```php
     new Test(
+        "Test2",
         "Failing test",
         function($p) {
             usleep(20000);
