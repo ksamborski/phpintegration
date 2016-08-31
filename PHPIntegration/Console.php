@@ -242,9 +242,10 @@ class Console
 
         $testsMap = ArrayHelper::associative($tests, FunctionHelper::callObjMethod('name'));
 
+        $exit = 0;
         foreach (ValueHelper::ifEmpty($parsedOptions['tests'], array_keys($testsMap)) as $testName) {
-            $exit = 0;
             $avg = 0;
+            $failed = false;
             for ($repeat = 0; $repeat < $parsedOptions["n"]; $repeat++) {
                 $runParams = Console::overrideParameters(
                     $parsedOptions["params"],
@@ -264,6 +265,7 @@ class Console
 
                 if ($result->isFailed()) {
                     $exit = 1;
+                    $failed = true;
                     echo Printer::red('[ FAILED ] ') . number_format($result->executionTime(), 2) . " ms";
                     if ($test->timeLimit() !== null
                         && $result->executionTime() > $test->timeLimit()) {
@@ -290,12 +292,12 @@ class Console
                     }
                 }
 
-                if ($exit > 0) {
+                if ($failed) {
                     break;
                 }
             }
 
-            if ($exit === 0) {
+            if ($failed) {
                 echo "\n\n";
             } else {
                 echo "\n";
