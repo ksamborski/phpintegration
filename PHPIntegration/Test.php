@@ -78,7 +78,8 @@ class Test
                 $msg = $res;
             }
         } catch (\Exception $e) {
-            $msg = "Caught " . get_class($e) . ": " . $e->getMessage() . "\n" . $e->getTraceAsString();
+            $msg = "Caught " . get_class($e) . ": " . $e->getMessage() . "\n"
+                . $e->getTraceAsString();
             $failed = true;
         }
 
