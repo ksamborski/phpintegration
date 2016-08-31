@@ -94,12 +94,13 @@ class Console
             if (!array_key_exists($test, $testsMap)) {
                 return "Bad test name: " . $test . "\n"
                     . "Available test are: \n"
-                    . array_reduce(
-                        $tests,
-                        function ($r, $t) {
-                            return $r . "- " . $t->name() . "\n";
-                        },
-                        ""
+                    . Printer::listValues(
+                        array_map(
+                            function ($t) {
+                                return $t->name() . ": " . $t->description();
+                            },
+                            $tests
+                        )
                     );
             }
         }
@@ -110,12 +111,8 @@ class Console
             } elseif (!array_key_exists($param[0], $paramsMap)) {
                 return "Bad parameter name: " . $param[0] . "\n"
                     . "Available params are: \n"
-                    . array_reduce(
-                        $params,
-                        function ($r, $p) {
-                            return $r . "- " . $p->name() . "\n";
-                        },
-                        ""
+                    . Printer::listValues(
+                        array_map(FunctionHelper::callObjMethod("name"), $params)
                     );
             }
 
@@ -146,21 +143,23 @@ class Console
             . Printer::green("  -h, --help ")
             . "\t\t\t\t\t\t Show this help\n\n"
             . Printer::yellow("Available tests:\n")
-            . array_reduce(
-                $tests,
-                function ($r, $t) {
-                    return $r . "- " . $t->name() . "\n";
-                },
-                ""
+            . Printer::listValues(
+                array_map(
+                    function ($t) {
+                        return $t->name() . ": " . $t->description();
+                    },
+                    $tests
+                )
             )
             . Printer::yellow("\nAvailable parameters:\n")
-            . array_reduce(
-                $params,
-                function ($r, $p) {
-                    return $r . "- " . $p->name() . " \n  "
-                        . Printer::red("Default: ") . $p->rawDefault() . "\n";
-                },
-                ""
+            . Printer::listValues(
+                array_map(
+                    function ($p) {
+                        return $p->name() . " \n  "
+                            . Printer::red("Default: ") . $p->rawDefault();
+                    },
+                    $params
+                )
             );
     }
 
@@ -273,16 +272,28 @@ class Console
                     } else {
                         echo "\n";
                     }
-                    echo Printer::yellow("Parameters: \n")
-                        . Printer::listValues(
-                            array_map(
-                                function ($k, $v) {
-                                    return $k . ":" . $v;
-                                },
-                                array_keys($runParams['rawparams']),
-                                $runParams['rawparams']
-                            )
-                        );
+
+                    if (empty($test->description())) {
+                        echo Printer::yellow("Test description: ") . "none\n";
+                    } else {
+                        echo Printer::yellow("Test description: \n")
+                            . $test->description() . "\n";
+                    }
+
+                    if (empty($runParams['rawparams'])) {
+                        echo Printer::yellow("Parameters: ") . "none\n";
+                    } else {
+                        echo Printer::yellow("Parameters: \n")
+                            . Printer::listValues(
+                                array_map(
+                                    function ($k, $v) {
+                                        return $k . ":" . $v;
+                                    },
+                                    array_keys($runParams['rawparams']),
+                                    $runParams['rawparams']
+                                )
+                            );
+                    }
                     echo Printer::yellow("Message: \n");
                     echo $result->failMessage() . "\n";
                 } else {
@@ -297,11 +308,7 @@ class Console
                 }
             }
 
-            if ($failed) {
-                echo "\n\n";
-            } else {
-                echo "\n";
-            }
+            echo "\n";
         }
 
         exit($exit);

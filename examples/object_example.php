@@ -11,12 +11,14 @@ use PHPIntegration\Randomizable;
 
 $tests = [
     new Test(
+        "Test1",
         "First name test",
         function ($p) {
             return "Hello " . $p["first name"]->name . "!";
         }
     ),
     new Test(
+        "Test2",
         "Random name test",
         function ($p) {
             return "Hello " . $p["random name"]->name . "! It can't be real name...";

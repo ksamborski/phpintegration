@@ -8,6 +8,7 @@ use PHPIntegration\Console;
 
 $tests = [
     new Test(
+        "Test1",
         "Simple test 1",
         function ($p) {
             usleep(rand(10000, 100000));
@@ -15,6 +16,7 @@ $tests = [
         }
     ),
     new Test(
+        "Test2",
         "Failing test",
         function ($p) {
             return "this is a test that always fails";

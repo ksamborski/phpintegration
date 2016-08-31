@@ -17,6 +17,7 @@ function validate(array $a) : bool
 
 $tests = [
     new Test(
+        "Test1",
         "Check validation function (missing random required field)",
         function ($p) {
             /*
@@ -73,6 +74,7 @@ $tests = [
         }
     ),
     new Test(
+        "Test2",
         "Check validation function (missing all required fields)",
         function ($p) {
             $requiredFields = [

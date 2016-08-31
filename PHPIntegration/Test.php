@@ -10,12 +10,14 @@ use PHPIntegration\TestResult;
 class Test
 {
     private $id;
+    private $desc;
     private $runable;
     private $tl;
 
     /**
      * Test case constructor.
      * @param string $id Name of the test
+     * @param string $desc Test's description.
      * @param callable $run Function running the test,
      *                      it must take one parameter
      *                      that is array of
@@ -23,11 +25,12 @@ class Test
      * @param int $timeLimit Optional. Execution time limit for test,
      *                       useful for benchmarking.
      */
-    public function __construct(string $id, callable $run, int $timeLimit = null)
+    public function __construct(string $id, string $desc, callable $run, int $timeLimit = null)
     {
         $this->id = $id;
         $this->runable = $run;
         $this->tl = $timeLimit;
+        $this->desc = $desc;
     }
 
     /**
@@ -37,6 +40,15 @@ class Test
     public function name() : string
     {
         return $this->id;
+    }
+
+    /**
+     * Returns test description.
+     * @return string Test's description..
+     */
+    public function description() : string
+    {
+        return $this->desc;
     }
 
     /**

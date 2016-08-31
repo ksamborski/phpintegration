@@ -10,6 +10,7 @@ use PHPIntegration\Utils\RandomHelper;
 
 $tests = [
     new Test(
+        "Test1",
         "Warsaw test",
         function ($p) {
             if (!in_array('Warsaw', $p['departments'])) {
@@ -20,6 +21,7 @@ $tests = [
         }
     ),
     new Test(
+        "Test2",
         "Failing test",
         function ($p) {
             usleep(20000);
