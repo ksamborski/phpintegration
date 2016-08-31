@@ -1,3 +1,13 @@
+## 0.5
+
+Features:
+
+  - added test description
+
+Bugfixes:
+
+  - fixed catching exceptions
+
 ## 0.4.1
 
 Bugfixes:
