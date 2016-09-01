@@ -109,7 +109,7 @@ class ArrayHelper
             return [
                 [],
                 'Second array is missing keys: '
-                . join(', ', array_diff_key($fieldsA, $fieldsB))
+                . join(', ', array_diff(array_keys($fieldsA), array_keys($fieldsB)))
             ];
         }
 
@@ -135,6 +135,14 @@ class ArrayHelper
                 if ($result !== true) {
                     array_unshift($result[0], '[' . $name . ']');
                     return $result;
+                }
+            } elseif (is_float($value) || is_float($b[$name])) {
+                if (abs($value - $b[$name]) > 0.000001) {
+                    return [
+                        [$name],
+                        'Value ' . $value . ' (' . gettype($value) . ') != '
+                        . $b[$name] . ' (' . gettype($b[$name]) . ')'
+                    ];
                 }
             } elseif ($value !== $b[$name]) {
                 return [
