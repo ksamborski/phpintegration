@@ -103,7 +103,7 @@ class ArrayHelper
             return [
                 [],
                 'Arrays have different number of elements: '
-                . $count($fieldsA) . ' to ' . count($fieldsB)
+                . count($fieldsA) . ' to ' . count($fieldsB)
             ];
         } elseif (!empty(array_diff_key($fieldsA, $fieldsB))) {
             return [
