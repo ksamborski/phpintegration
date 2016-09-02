@@ -1,3 +1,10 @@
+## 0.5.1
+
+Bugfixes:
+
+  - fixed checking for different number of array's elements in ArrayHelper::equal
+  - added different comparison for float values in ArrayHelper::equal
+
 ## 0.5
 
 Features:
