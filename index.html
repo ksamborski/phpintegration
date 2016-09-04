@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Phpintegration : PHP library for writing automated tests">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Phpintegration</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/ksamborski/phpintegration">View on GitHub</a>
+
+          <h1 id="project_title">Phpintegration</h1>
+          <h2 id="project_tagline">PHP library for writing automated tests</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/ksamborski/phpintegration/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/ksamborski/phpintegration/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a id="phpintegration" class="anchor" href="#phpintegration" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>phpintegration</h1>
+
+<p>PHP library for writing automated tests. It can help you get started especially when you do TDD and value randomized testing.</p>
+
+<p><img src="https://travis-ci.org/ksamborski/phpintegration.svg?branch=master" alt="Build Status"></p>
+
+<h2>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h2>
+
+<div class="highlight highlight-source-shell"><pre>composer install ksamborski/php-integration</pre></div>
+
+<h2>
+<a id="basic-usage" class="anchor" href="#basic-usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Basic usage</h2>
+
+<p>You write test. That's cool. And when you write test that uses random data that's even cooler. But what happens if your test find a bug? You fix it and tries again but the test is random and you cannot simple rerun it. You need to change the test's code, run it and when everything's ok hopefully not forget to remove your changes in test's code. You can also use this library.</p>
+
+<p>First of all let's define some tests:</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-s1"><span class="pl-k">use</span> <span class="pl-c1">PHPIntegration\TestParameter</span>;</span>
+<span class="pl-s1"><span class="pl-k">use</span> <span class="pl-c1">PHPIntegration\Test</span>;</span>
+<span class="pl-s1"><span class="pl-k">use</span> <span class="pl-c1">PHPIntegration\Console</span>;</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-smi">$tests</span> <span class="pl-k">=</span> [</span>
+<span class="pl-s1">    <span class="pl-k">new</span> <span class="pl-c1">Test</span>(</span>
+<span class="pl-s1">        <span class="pl-s"><span class="pl-pds">"</span>Test1<span class="pl-pds">"</span></span>,</span>
+<span class="pl-s1">        <span class="pl-s"><span class="pl-pds">"</span>Simple test 1<span class="pl-pds">"</span></span>,</span>
+<span class="pl-s1">        <span class="pl-k">function</span>(<span class="pl-smi">$p</span>) {</span>
+<span class="pl-s1">            <span class="pl-c1">usleep</span>(<span class="pl-c1">rand</span>(<span class="pl-c1">10000</span>, <span class="pl-c1">100000</span>));</span>
+<span class="pl-s1">            <span class="pl-k">return</span> <span class="pl-c1">true</span>;</span>
+<span class="pl-s1">        }</span>
+<span class="pl-s1">    ),</span>
+<span class="pl-s1">    <span class="pl-k">new</span> <span class="pl-c1">Test</span>(</span>
+<span class="pl-s1">        <span class="pl-s"><span class="pl-pds">"</span>Test2<span class="pl-pds">"</span></span>,</span>
+<span class="pl-s1">        <span class="pl-s"><span class="pl-pds">"</span>Failing test<span class="pl-pds">"</span></span>,</span>
+<span class="pl-s1">        <span class="pl-k">function</span>(<span class="pl-smi">$p</span>) {</span>
+<span class="pl-s1">            <span class="pl-k">return</span> <span class="pl-s"><span class="pl-pds">"</span>this is a test that always fails<span class="pl-pds">"</span></span>;</span>
+<span class="pl-s1">        }</span>
+<span class="pl-s1">    )</span>
+<span class="pl-s1">];</span>
+<span class="pl-s1"></span></pre></div>
+
+<p>Test is a simple object that has a name, a description and a function that receives parameters. Don't worry about it now, we will cover it later. That function is your test, it should return true when everything's ok and some message explaining what is wrong otherwise.</p>
+
+<p>Now to avoid changing test code when something fails let's introduce dynamic parameters:</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-smi">$params</span> <span class="pl-k">=</span> <span class="pl-k">function</span>() {</span>
+<span class="pl-s1">    <span class="pl-k">return</span> [</span>
+<span class="pl-s1">        <span class="pl-c1">TestParameter</span><span class="pl-k">::</span>manyFromParameter(<span class="pl-s"><span class="pl-pds">"</span>departments<span class="pl-pds">"</span></span>, [<span class="pl-s"><span class="pl-pds">"</span>Warsaw<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Berlin<span class="pl-pds">"</span></span>], [<span class="pl-s"><span class="pl-pds">"</span>Warsaw<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Berlin<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Cracow<span class="pl-pds">"</span></span>]),</span>
+<span class="pl-s1">        <span class="pl-c1">TestParameter</span><span class="pl-k">::</span>stringParameter(<span class="pl-s"><span class="pl-pds">"</span>currency<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>PLN<span class="pl-pds">"</span></span>),</span>
+<span class="pl-s1">        <span class="pl-c1">TestParameter</span><span class="pl-k">::</span>regexParameter(<span class="pl-s"><span class="pl-pds">"</span>date<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>2015-01-01<span class="pl-pds">"</span></span>, <span class="pl-sr"><span class="pl-pds">"/</span><span class="pl-k">^</span><span class="pl-pds">[0-9]</span><span class="pl-sra">{4}</span>-<span class="pl-pds">[0-9]</span><span class="pl-sra">{2}</span>-<span class="pl-pds">[0-9]</span><span class="pl-sra">{2}</span><span class="pl-k">$</span><span class="pl-pds">/"</span></span>),</span>
+<span class="pl-s1">        <span class="pl-c1">TestParameter</span><span class="pl-k">::</span>arrayOfParameter(<span class="pl-s"><span class="pl-pds">"</span>hours<span class="pl-pds">"</span></span>, [<span class="pl-c1">12</span>], <span class="pl-s"><span class="pl-pds">'</span>\PHPIntegration\TestParameter::intParameter<span class="pl-pds">'</span></span>)</span>
+<span class="pl-s1">    ];</span>
+<span class="pl-s1">};</span>
+<span class="pl-s1"></span></pre></div>
+
+<p>These parameters are of course objects. Depending of your needs you can define a string parameter, regex one, parameter of predefined values etc. or custom one. Parameter usually takes a name and default value. This default value can be override at run time. I'll show you later.</p>
+
+<p>One thing lacking is console. We need to initialize console interface (CLI) to get some way to use it.</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-s1"><span class="pl-c1">Console</span><span class="pl-k">::</span>main(<span class="pl-smi">$tests</span>, <span class="pl-smi">$params</span>);</span></pre></div>
+
+<p>It takes two arguments: array of tests and function generating dynamic parameters. It is a function in the latter case because we need some way to randomize them again after each iteration when we will run some test n times.</p>
+
+<p>Now let's run it:</p>
+
+<div class="highlight highlight-source-shell"><pre>php basic_example.php
+
+Simple <span class="pl-c1">test</span> 1 [ OK ] 36.46 ms
+
+Failing <span class="pl-c1">test</span> [ FAILED ] 0.00 ms
+Parameters: 
+- departments:[Warsaw,Berlin]
+- currency:PLN
+- date:2015-01-01
+- hours:[12]
+Message: 
+this is a <span class="pl-c1">test</span> that always fails</pre></div>
+
+<p>Now let's override some parameter:</p>
+
+<div class="highlight highlight-source-shell"><pre>php basic_example.php -p <span class="pl-s"><span class="pl-pds">"</span>currency:EUR<span class="pl-pds">"</span></span>
+Simple <span class="pl-c1">test</span> 1 [ OK ] 38.27 ms
+
+Failing <span class="pl-c1">test</span> [ FAILED ] 0.00 ms
+Parameters: 
+- departments:[Warsaw,Berlin]
+- currency:EUR
+- date:2015-01-01
+- hours:[12]
+Message: 
+this is a <span class="pl-c1">test</span> that always fails</pre></div>
+
+<p>OK, but how to use them in a test? Remember the $p argument in tests that we defined previously? That's the parameters map. To read for example the currency you can write:</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-s1"><span class="pl-k">new</span> <span class="pl-c1">Test</span>(</span>
+<span class="pl-s1">        <span class="pl-s"><span class="pl-pds">"</span>Test1<span class="pl-pds">"</span></span>,</span>
+<span class="pl-s1">        <span class="pl-s"><span class="pl-pds">"</span>Simple test 1<span class="pl-pds">"</span></span>,</span>
+<span class="pl-s1">        <span class="pl-k">function</span>(<span class="pl-smi">$p</span>) {</span>
+<span class="pl-s1">            <span class="pl-k">return</span> <span class="pl-smi">$p</span>[<span class="pl-s"><span class="pl-pds">'</span>currency<span class="pl-pds">'</span></span>];</span>
+<span class="pl-s1">        }</span>
+<span class="pl-s1">    )</span></pre></div>
+
+<p>What if we forget what parameters we can pass? CLI for the rescue!</p>
+
+<div class="highlight highlight-source-shell"><pre>php basic_example.php -h
+Usage: php basic_example.php [OPTIONS]
+
+  -t, --test TEST_NAME                             Run only given tests (you can pass multiple -t option) 
+  -p, --parameter PARAMETER_NAME:PARAMETER_VALUE   Set <span class="pl-c1">test</span> parameter (you can pass multiple -p option) 
+  -n                                               Number of repeats 
+
+  -h, --help                                       Show this <span class="pl-c1">help</span>
+
+Available tests:
+- Simple <span class="pl-c1">test</span> 1
+- Failing <span class="pl-c1">test</span>
+
+Available parameters:
+- departments 
+  Default: [Warsaw,Berlin]
+- currency 
+  Default: PLN
+- date 
+  Default: 2015-01-01
+- hours 
+  Default: [12]</pre></div>
+
+<p>As you see we can do many things. Isn't it great?</p>
+
+<h2>
+<a id="random" class="anchor" href="#random" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Random</h2>
+
+<p>Next thing we should look at is random_example.php from the examples directory. Let's take a look at parameters:</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-s1"><span class="pl-k">use</span> <span class="pl-c1">PHPIntegration\Utils\RandomHelper</span>;</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-smi">$params</span> <span class="pl-k">=</span> <span class="pl-k">function</span>() {</span>
+<span class="pl-s1">    <span class="pl-k">return</span> [</span>
+<span class="pl-s1">        <span class="pl-c1">TestParameter</span><span class="pl-k">::</span>manyFromParameter(</span>
+<span class="pl-s1">            <span class="pl-s"><span class="pl-pds">"</span>departments<span class="pl-pds">"</span></span>,</span>
+<span class="pl-s1">            <span class="pl-c1">RandomHelper</span><span class="pl-k">::</span>randomArray([<span class="pl-s"><span class="pl-pds">"</span>Warsaw<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Berlin<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Cracow<span class="pl-pds">"</span></span>], <span class="pl-c1">false</span>),</span>
+<span class="pl-s1">            [<span class="pl-s"><span class="pl-pds">"</span>Warsaw<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Berlin<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Cracow<span class="pl-pds">"</span></span>]</span>
+<span class="pl-s1">        ),</span>
+<span class="pl-s1">        <span class="pl-c1">TestParameter</span><span class="pl-k">::</span>stringParameter(<span class="pl-s"><span class="pl-pds">"</span>currency<span class="pl-pds">"</span></span>, <span class="pl-c1">RandomHelper</span><span class="pl-k">::</span>randomString(<span class="pl-c1">3</span>)),</span>
+<span class="pl-s1">        <span class="pl-c1">TestParameter</span><span class="pl-k">::</span>arrayOfParameter(</span>
+<span class="pl-s1">            <span class="pl-s"><span class="pl-pds">"</span>hours<span class="pl-pds">"</span></span>,</span>
+<span class="pl-s1">            <span class="pl-c1">RandomHelper</span><span class="pl-k">::</span>randomMany(<span class="pl-k">function</span>() { <span class="pl-k">return</span> <span class="pl-c1">rand</span>(<span class="pl-c1">1</span>,<span class="pl-c1">24</span>); },<span class="pl-c1">1</span>),</span>
+<span class="pl-s1">            <span class="pl-s"><span class="pl-pds">'</span>\PHPIntegration\TestParameter::intParameter<span class="pl-pds">'</span></span></span>
+<span class="pl-s1">        )</span>
+<span class="pl-s1">    ];</span>
+<span class="pl-s1">};</span></pre></div>
+
+<p>You can see the same old TestParameter class but there is also RandomHelper. It contains many useful functions for generating random data. For example the randomArray function just generates array containing random elements from the provided list. The last argument decides whether it can contain duplicate values or not. Of course you can generate random string with randomString function and random array with randomMany.</p>
+
+<p>But real the beauty is the CLI:</p>
+
+<div class="highlight highlight-source-shell"><pre>Warsaw <span class="pl-c1">test</span> 6/100 [ FAILED ] 0.00 ms
+Parameters: 
+- departments:[]
+- currency:rH/
+- hours:[20,14,16,16,22,21]
+Message: 
+this <span class="pl-c1">test</span> succeeds only <span class="pl-k">if</span> Warsaw is passed
+
+Failing <span class="pl-c1">test</span> 1/100 [ FAILED ] 20.08 ms <span class="pl-k">&gt;</span> 10 ms limit
+Parameters: 
+- departments:[Cracow]
+- currency:jYy
+- hours:[22,5,3,13]
+Message: 
+this is a <span class="pl-c1">test</span> that always fails</pre></div>
+
+<p>The n parameter to the script tells it to repeat execution of every test n times. Whenever one fails it stops repeating it and goes to next test. You can spot the "&gt; 10 ms limit" in the second test case. This happened because it this test time limit was set. You can do it by providing third parameter to the Test class:</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-s1">    <span class="pl-k">new</span> <span class="pl-c1">Test</span>(</span>
+<span class="pl-s1">        <span class="pl-s"><span class="pl-pds">"</span>Test2<span class="pl-pds">"</span></span>,</span>
+<span class="pl-s1">        <span class="pl-s"><span class="pl-pds">"</span>Failing test<span class="pl-pds">"</span></span>,</span>
+<span class="pl-s1">        <span class="pl-k">function</span>(<span class="pl-smi">$p</span>) {</span>
+<span class="pl-s1">            <span class="pl-c1">usleep</span>(<span class="pl-c1">20000</span>);</span>
+<span class="pl-s1">            <span class="pl-k">return</span> <span class="pl-s"><span class="pl-pds">"</span>this is a test that always fails<span class="pl-pds">"</span></span>;</span>
+<span class="pl-s1">        },</span>
+<span class="pl-s1">        <span class="pl-c1">10</span></span>
+<span class="pl-s1">    )</span></pre></div>
+
+<p>10 means the test should finish within 10 ms.</p>
+
+<h2>
+<a id="objects-as-parameters" class="anchor" href="#objects-as-parameters" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Objects as parameters</h2>
+
+<p>So far we defined only string, int and array parameters. But we can do better. We can define objects! Unfortunately to do this we need to implement an interface. Take a look at object_example.php from the examples directory.</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-s1"><span class="pl-k">use</span> <span class="pl-c1">PHPIntegration\Testable</span>;</span>
+<span class="pl-s1"><span class="pl-k">use</span> <span class="pl-c1">PHPIntegration\Utils\RandomHelper</span>;</span>
+<span class="pl-s1"><span class="pl-k">use</span> <span class="pl-c1">PHPIntegration\Randomizable</span>;</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-k">class</span> <span class="pl-en">TestObject</span> <span class="pl-k">implements</span> <span class="pl-e">Randomizable</span>, <span class="pl-e">Testable</span></span>
+<span class="pl-s1">{</span>
+<span class="pl-s1">    <span class="pl-k">public</span> <span class="pl-smi">$name</span>;</span>
+<span class="pl-s1"></span>
+<span class="pl-s1">    <span class="pl-k">public</span> <span class="pl-k">function</span> <span class="pl-c1">__construct</span>(<span class="pl-c1">string</span> <span class="pl-smi">$name</span>)</span>
+<span class="pl-s1">    {</span>
+<span class="pl-s1">        <span class="pl-smi">$this</span><span class="pl-k">-&gt;</span><span class="pl-smi">name</span> <span class="pl-k">=</span> <span class="pl-smi">$name</span>;</span>
+<span class="pl-s1">    }</span>
+<span class="pl-s1"></span>
+<span class="pl-s1">    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-k">function</span> <span class="pl-en">build</span>(<span class="pl-c1">string</span> <span class="pl-smi">$value</span>) : <span class="pl-c1">Testable</span></span>
+<span class="pl-s1">    {</span>
+<span class="pl-s1">        <span class="pl-k">return</span> <span class="pl-k">new</span> <span class="pl-c1">TestObject</span>(<span class="pl-smi">$value</span>);</span>
+<span class="pl-s1">    }</span>
+<span class="pl-s1"></span>
+<span class="pl-s1">    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-k">function</span> <span class="pl-en">validate</span>(<span class="pl-c1">string</span> <span class="pl-smi">$value</span>, <span class="pl-c1">bool</span> <span class="pl-smi">$valid</span> <span class="pl-k">=</span> <span class="pl-ii">true</span>)</span>
+<span class="pl-s1">    {</span>
+<span class="pl-s1">        <span class="pl-smi">$fstLetter</span> <span class="pl-k">=</span> <span class="pl-c1">substr</span>(<span class="pl-smi">$value</span>, <span class="pl-c1">0</span>, <span class="pl-c1">1</span>);</span>
+<span class="pl-s1">        <span class="pl-k">if</span> (<span class="pl-smi">$valid</span> <span class="pl-k">===</span> <span class="pl-c1">true</span>) {</span>
+<span class="pl-s1">            <span class="pl-k">if</span> (<span class="pl-c1">strtolower</span>(<span class="pl-smi">$fstLetter</span>) <span class="pl-k">==</span> <span class="pl-smi">$fstLetter</span>) {</span>
+<span class="pl-s1">                <span class="pl-k">return</span> <span class="pl-s"><span class="pl-pds">"</span>Value must start from upper case.<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>;</span>
+<span class="pl-s1">            } <span class="pl-k">else</span> {</span>
+<span class="pl-s1">                <span class="pl-k">return</span> <span class="pl-c1">true</span>;</span>
+<span class="pl-s1">            }</span>
+<span class="pl-s1">        } <span class="pl-k">else</span> {</span>
+<span class="pl-s1">            <span class="pl-k">if</span> (<span class="pl-c1">strtolower</span>(<span class="pl-smi">$fstLetter</span>) <span class="pl-k">==</span> <span class="pl-smi">$fstLetter</span>) {</span>
+<span class="pl-s1">                <span class="pl-k">return</span> <span class="pl-c1">true</span>;</span>
+<span class="pl-s1">            } <span class="pl-k">else</span> {</span>
+<span class="pl-s1">                <span class="pl-k">return</span> <span class="pl-s"><span class="pl-pds">"</span>Value must not start from upper case.<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>;</span>
+<span class="pl-s1">            }</span>
+<span class="pl-s1">        }</span>
+<span class="pl-s1">    }</span>
+<span class="pl-s1"></span>
+<span class="pl-s1">    <span class="pl-k">public</span> <span class="pl-k">function</span> <span class="pl-en">asStringParameter</span>() : <span class="pl-k">string</span></span>
+<span class="pl-s1">    {</span>
+<span class="pl-s1">        <span class="pl-k">return</span> <span class="pl-smi">$this</span><span class="pl-k">-&gt;</span><span class="pl-smi">name</span>;</span>
+<span class="pl-s1">    }</span>
+<span class="pl-s1"></span>
+<span class="pl-s1">    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-k">function</span> <span class="pl-en">randomValid</span>()</span>
+<span class="pl-s1">    {</span>
+<span class="pl-s1">        <span class="pl-k">return</span> <span class="pl-k">new</span> <span class="pl-c1">TestObject</span>(<span class="pl-c1">strtoupper</span>(<span class="pl-c1">RandomHelper</span><span class="pl-k">::</span>randomString()));</span>
+<span class="pl-s1">    }</span>
+<span class="pl-s1"></span>
+<span class="pl-s1">    <span class="pl-k">public</span> <span class="pl-k">static</span> <span class="pl-k">function</span> <span class="pl-en">randomInvalid</span>()</span>
+<span class="pl-s1">    {</span>
+<span class="pl-s1">        <span class="pl-k">return</span> <span class="pl-k">new</span> <span class="pl-c1">TestObject</span>(<span class="pl-c1">strtolower</span>(<span class="pl-c1">RandomHelper</span><span class="pl-k">::</span>randomString()));</span>
+<span class="pl-s1">    }</span>
+<span class="pl-s1">}</span></pre></div>
+
+<p>To use object as parameter we need to implement only Testable interface. To make it random we need also implement Randomizable interface. There are 3 methods in the Testable interface: build, validate and asStringParameter. Build is easy, it just takes whatever user wrote in the -p option and must create an object from it. Validate method is executed just before it to make sure that this string makes sense. When not CLI will display error. And asStringParameter is used when test fails to show the parameter value that user can pass again (useful when object is not provided but randomized).</p>
+
+<div class="highlight highlight-source-shell"><pre>php object_example.php -p <span class="pl-s"><span class="pl-pds">"</span>first name:john<span class="pl-pds">"</span></span>    
+Bad param <span class="pl-s"><span class="pl-pds">`</span>first name<span class="pl-pds">`</span></span> value <span class="pl-s"><span class="pl-pds">`</span>john<span class="pl-pds">`</span></span>
+Value must start from upper <span class="pl-k">case</span>.</pre></div>
+
+<p>Randomizable is much simpler. There are only 2 methods. One for generating object with valid data. For example when it would be a database connection string it would point to the existing database. And the other one for invalid data (for instance connection string to not existing database).</p>
+
+<p>You can randomize object with randomObject method from the RandomHelper class. To use object as a parameter you need to use objectParameter method from the TestParameter class.</p>
+
+<h2>
+<a id="other-things" class="anchor" href="#other-things" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Other things</h2>
+
+<p>You should definitely check the examples folder.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Phpintegration maintained by <a href="https://github.com/ksamborski">ksamborski</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
