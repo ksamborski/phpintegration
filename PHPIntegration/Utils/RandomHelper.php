@@ -194,7 +194,7 @@ class RandomHelper
         $items = rand(1, $maxItems);
         for ($i = 0; $i < $items; $i++) {
             $key = call_user_func($keyBuilder, $currentPath);
-            $path = array_merge($currentPath, [$path]);
+            $path = array_merge($currentPath, [$key]);
 
             if ($maxDepth > 1 && rand(0, 1) == 1) {
                 $value = self::generateRandomArrayOf(
