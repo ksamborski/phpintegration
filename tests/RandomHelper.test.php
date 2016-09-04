@@ -3,6 +3,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use PHPUnit\Framework\TestCase;
 use PHPIntegration\Utils\RandomHelper;
+use PHPIntegration\Utils\TreeHelper;
 
 class RandomHelperTest extends TestCase
 {
@@ -127,6 +128,67 @@ class RandomHelperTest extends TestCase
             $this->assertTrue(($vDate->getTimestamp() >= $dateFrom->getTimestamp())
                 && ($vDate->getTimestamp() <= $dateTo->getTimestamp())
                 , 'Date out of bounds');
+        }
+    }
+
+    public function testRandomArrayOf()
+    {
+        $keyBuilder = function ($path) {
+            return 'key' . RandomHelper::randomString();
+        };
+
+        $valueBuilder = function ($path) {
+            return 'value' . RandomHelper::randomString();
+        };
+
+        for ($i = 0; $i < 1000; $i++) {
+            $maxItems = rand(1, 20);
+            $maxDepth = rand(1, 5);
+            $arr = RandomHelper::randomArrayOf($keyBuilder, $valueBuilder, $maxItems, $maxDepth);
+            $paths = TreeHelper::allPaths($arr);
+            $this->assertNotEmpty($arr);
+            $this->assertEmpty(
+                array_filter(
+                    $paths,
+                    function ($p) use ($maxDepth) {
+                        return count($p) > $maxDepth;
+                    }
+                ),
+                'Array has more depth than required ' . $maxDepth
+                . ': ' . var_export($arr, true)
+            );
+
+            $scope = $this;
+            $keys = [];
+            $values = [];
+            array_walk_recursive(
+                $arr,
+                function ($v, $k) use (&$scope, &$keys, &$values) {
+                    $scope->assertNotTrue(
+                        array_key_exists($k, $keys),
+                        'Duplicated key: ' . $k
+                    );
+
+                    $scope->assertNotTrue(
+                        array_key_exists($v, $values),
+                        'Duplicated value: ' . $v
+                    );
+
+                    $scope->assertTrue(
+                        substr($v, 0, 5) == 'value',
+                        'Value at ' . $k
+                        . ' doesn\'t start with "value": ' . $v
+                    );
+
+                    $scope->assertTrue(
+                        substr($k, 0, 3) == 'key',
+                        'Key doesn\'t start with "key": ' . $k
+                    );
+
+                    $keys[$k] = 1;
+                    $values[$v] = 1;
+                }
+            );
         }
     }
 }

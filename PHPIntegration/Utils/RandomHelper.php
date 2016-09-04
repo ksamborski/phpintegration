@@ -156,4 +156,60 @@ class RandomHelper
 
         return $randomDate->format($format);
     }
+
+    /**
+     * Function generates random multidimensional array. It will contain values
+     * that will be returned by function $valueBuilder and keys that will be
+     * returned by $keyBuilder. Each of them takes an array with a path as
+     * parameter.
+     * @param $keyBuilder Function that takes path as a parameter and returns new key.
+     * @param $valueBuilder Function that takes path as a parameter and returns new value..
+     * @return array
+     */
+    public static function randomArrayOf(
+        $keyBuilder,
+        $valueBuilder,
+        int $maxItems = 10,
+        int $maxDepth = 5
+    ) : array {
+        $p = [];
+        return self::generateRandomArrayOf(
+            $keyBuilder,
+            $valueBuilder,
+            $p,
+            abs($maxItems),
+            abs($maxDepth)
+        );
+    }
+
+    private static function generateRandomArrayOf(
+        $keyBuilder,
+        $valueBuilder,
+        array &$currentPath,
+        int $maxItems,
+        int $maxDepth
+    ) : array {
+        $result = [];
+
+        $items = rand(1, $maxItems);
+        for ($i = 0; $i < $items; $i++) {
+            $key = call_user_func($keyBuilder, $currentPath);
+            $path = array_merge($currentPath, [$path]);
+
+            if ($maxDepth > 1 && rand(0, 1) == 1) {
+                $value = self::generateRandomArrayOf(
+                    $keyBuilder,
+                    $valueBuilder,
+                    $path,
+                    $maxItems,
+                    $maxDepth - 1
+                );
+            } else {
+                $value = call_user_func($valueBuilder, $path);
+            }
+            $result[$key] = $value;
+        }
+
+        return $result;
+    }
 }

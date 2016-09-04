@@ -1,3 +1,9 @@
+## 0.6
+
+Features:
+
+  - random multidimensional array generator in RandomHelper
+
 ## 0.5.1
 
 Bugfixes:
