@@ -137,9 +137,9 @@ class RandomHelper
      * Generates random date.
      * @param string Lower bound (inclusive).
      * @param string Upper bound (inclusive).
-     * @return object
+     * @return string
      */
-    public static function randomDate($lowerBound = '0001-01-01', $upperBound = '9999-12-31')
+    public static function randomDate($lowerBound = '0001-01-01', $upperBound = '9999-12-31') : string
     {
         $format = 'Y-m-d';
         $lowerBound = \DateTime::createFromFormat($format, $lowerBound);
