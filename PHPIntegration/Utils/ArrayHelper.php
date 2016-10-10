@@ -80,9 +80,10 @@ class ArrayHelper
      * @param array $a First object to test
      * @param array $b Second object to test
      * @param array $ignored Properties names to skip
+     * @param bool $containment Whether to check only if $b contains $a
      * @return mixed True if objects are equal and array with path and error string otherwise.
      */
-    public static function equal(array $a, array $b, array $ignored = [])
+    public static function equal(array $a, array $b, array $ignored = [], bool $containment = false)
     {
         $fieldsA = array_filter(
             $a,
@@ -99,13 +100,23 @@ class ArrayHelper
             ARRAY_FILTER_USE_KEY
         );
 
-        if (count($fieldsA) !== count($fieldsB)) {
+        if ($containment) {
+            if (count($fieldsA) > count($fieldsB)) {
+                return [
+                    [],
+                    'Second array is smaller: '
+                    . count($fieldsA) . ' to ' . count($fieldsB)
+                ];
+            }
+        } elseif (count($fieldsA) !== count($fieldsB)) {
             return [
                 [],
                 'Arrays have different number of elements: '
                 . count($fieldsA) . ' to ' . count($fieldsB)
             ];
-        } elseif (!empty(array_diff_key($fieldsA, $fieldsB))) {
+        }
+
+        if (!empty(array_diff_key($fieldsA, $fieldsB))) {
             return [
                 [],
                 'Second array is missing keys: '
@@ -131,7 +142,7 @@ class ArrayHelper
                     return $result;
                 }
             } elseif (is_array($value) && is_array($b[$name])) {
-                $result = self::equal($value, $b[$name]);
+                $result = self::equal($value, $b[$name], [], $containment);
                 if ($result !== true) {
                     array_unshift($result[0], '[' . $name . ']');
                     return $result;
