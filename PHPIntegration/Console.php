@@ -20,12 +20,14 @@ class Console
     private static function options() : array
     {
         $short  = "";
+        $short .= "g:"; //-g "group name"
         $short .= "t:"; //-t "test name"
         $short .= "p:"; //-p "parameter:value"
         $short .= "n:"; //-n 10
         $short .= "h";  //-h
 
         $long = [
+            "group:",      //--group "group name"
             "test:",      //--test "test name"
             "parameter:", //--parameter "parameter:value"
             "help"        //--help
@@ -42,6 +44,7 @@ class Console
     private static function parseOptions(array $options) : array
     {
         $parsedOptions = [
+            "groups" => [],
             "tests" => [],
             "help" => false,
             "n" => 1,
@@ -59,6 +62,14 @@ class Console
                         );
                     } else {
                         $parsedOptions["params"] = [Console::parseParameterValue($optval)];
+                    }
+                    break;
+                case "g":
+                case "group":
+                    if (is_array($optval)) {
+                        $parsedOptions["groups"] = $optval;
+                    } else {
+                        $parsedOptions["groups"] = [$optval];
                     }
                     break;
                 case "t":
@@ -84,16 +95,25 @@ class Console
 
     private static function validateOptions(
         array $parsedOptions,
-        array /*Test*/ $tests,
+        array /*TestGroup*/ $testGroups,
         array /*TestParameter*/ $params
     ) {
         $paramsMap = ArrayHelper::associative($params, FunctionHelper::callObjMethod('name'));
-        $testsMap = ArrayHelper::associative($tests, FunctionHelper::callObjMethod('name'));
+        $testsMap = ArrayHelper::associative(
+            array_reduce(
+                $testGroups,
+                function ($carry, $group) {
+                    return array_merge($carry, $group->tests());
+                },
+                []
+            ),
+            FunctionHelper::callObjMethod('name')
+        );
 
         foreach ($parsedOptions["tests"] as $test) {
             if (!array_key_exists($test, $testsMap)) {
-                return "Bad test name: " . $test . "\n"
-                    . "Available test are: \n"
+                return "Wrong test name: " . $test . "\n"
+                    . "Available tests: \n"
                     . Printer::listValues(
                         array_map(
                             function ($t) {
@@ -107,10 +127,10 @@ class Console
 
         foreach ($parsedOptions["params"] as $param) {
             if (count($param) != 2) {
-                return "Bad parameter format: " . $param[0] . ", it must be `param_name:param_value`\n";
+                return "Wrong parameter format: " . $param[0] . ", it must be `param_name:param_value`\n";
             } elseif (!array_key_exists($param[0], $paramsMap)) {
-                return "Bad parameter name: " . $param[0] . "\n"
-                    . "Available params are: \n"
+                return "Wrong parameter name: " . $param[0] . "\n"
+                    . "Available params: \n"
                     . Printer::listValues(
                         array_map(FunctionHelper::callObjMethod("name"), $params)
                     );
@@ -118,7 +138,7 @@ class Console
 
             $validParam = $paramsMap[$param[0]]->validate($param[1]);
             if ($validParam !== true) {
-                return "Bad param `" . $param[0] . "` value `" . $param[1] . "`\n"
+                return "Wrong param `" . $param[0] . "` value `" . $param[1] . "`\n"
                      . $validParam;
             }
         }
@@ -130,10 +150,12 @@ class Console
         return true;
     }
 
-    private static function help(array /*Test*/ $tests, array /*TestParameter*/ $params)
+    private static function help(array /*TestGroup*/ $testGroups, array /*TestParameter*/ $params)
     {
         global $argv;
         return Printer::yellow("Usage:") . " php " . $argv[0] . " [OPTIONS]\n\n"
+            . Printer::green("  -g, --group GROUP_NAME ")
+            . "\t\t\t\t Run only tests from given groups (you can pass multiple -g option) \n"
             . Printer::green("  -t, --test TEST_NAME ")
             . "\t\t\t\t\t Run only given tests (you can pass multiple -t option) \n"
             . Printer::green("  -p, --parameter PARAMETER_NAME:PARAMETER_VALUE ")
@@ -145,10 +167,20 @@ class Console
             . Printer::yellow("Available tests:\n")
             . Printer::listValues(
                 array_map(
-                    function ($t) {
-                        return $t->name() . ": " . $t->description();
+                    function ($g) {
+                        return Printer::cyan($g->name()) . ": \n"
+                            . Printer::listValues(
+                                array_map(
+                                    function ($t) {
+                                        return $t->name() . ": " . $t->description();
+                                    },
+                                    $g->tests()
+                                ),
+                                "  ",
+                                false
+                            );
                     },
-                    $tests
+                    $testGroups
                 )
             )
             . Printer::yellow("\nAvailable parameters:\n")
@@ -213,6 +245,109 @@ class Console
         ];
     }
 
+    private static function runGroupOption(string $name, string $groupName, array $groupsMap, array $runParams) : bool
+    {
+        $res = false;
+        try {
+            echo Printer::cyan($groupName . " [" . $name . "] ");
+            $res = call_user_func([$groupsMap[$groupName], $name]);
+        } catch (\Exception $e) {
+            $res = $e->getMessage();
+        }
+
+        if ($res !== true) {
+            echo Printer::red('[ FAILED ]') . "\n";
+            if (empty($runParams['rawparams'])) {
+                echo Printer::yellow("Parameters: ") . "none\n";
+            } else {
+                echo Printer::yellow("Parameters: \n")
+                    . Printer::listValues(
+                        array_map(
+                            function ($k, $v) {
+                                return $k . ":" . $v;
+                            },
+                            array_keys($runParams['rawparams']),
+                            $runParams['rawparams']
+                        )
+                    );
+            }
+            echo Printer::yellow("Message: \n");
+            echo $res . "\n\n";
+            return false;
+        } else {
+            echo Printer::green('[ OK ] ') . "\n";
+            return true;
+        }
+    }
+
+    private static function runTest(string $testName, array $testsMap, array $parsedOptions, callable $paramsGen)
+    {
+        $avg = 0;
+        $failed = false;
+        for ($repeat = 0; $repeat < $parsedOptions["n"]; $repeat++) {
+            $runParams = Console::overrideParameters(
+                $parsedOptions["params"],
+                call_user_func($paramsGen)
+            );
+
+            $test = $testsMap[$testName];
+
+            echo Printer::clearLine();
+            echo "\r" . Printer::cyan(">> ") . $test->name() . " ";
+            if ($parsedOptions["n"] > 1) {
+                echo Printer::yellow(($repeat + 1) . "/" . $parsedOptions["n"]) . " ";
+            }
+            $result = $test->run($runParams['params']);
+
+            $avg += $result->executionTime();
+
+            if ($result->isFailed()) {
+                $exit = 1;
+                $failed = true;
+                echo Printer::red('[ FAILED ] ') . number_format($result->executionTime(), 2) . " ms";
+                if ($test->timeLimit() !== null
+                    && $result->executionTime() > $test->timeLimit()) {
+                    echo Printer::red(' > ' . $test->timeLimit() . ' ms limit') . "\n";
+                } else {
+                    echo "\n";
+                }
+
+                if (empty($test->description())) {
+                    echo Printer::yellow("Test description: ") . "none\n";
+                } else {
+                    echo Printer::yellow("Test description: \n")
+                        . $test->description() . "\n";
+                }
+
+                if (empty($runParams['rawparams'])) {
+                    echo Printer::yellow("Parameters: ") . "none\n";
+                } else {
+                    echo Printer::yellow("Parameters: \n")
+                        . Printer::listValues(
+                            array_map(
+                                function ($k, $v) {
+                                    return $k . ":" . $v;
+                                },
+                                array_keys($runParams['rawparams']),
+                                $runParams['rawparams']
+                            )
+                        );
+                }
+                echo Printer::yellow("Message: \n");
+                echo $result->failMessage();
+            } else {
+                echo Printer::green('[ OK ] ') . number_format($result->executionTime(), 2) . " ms";
+                if ($parsedOptions["n"] > 1) {
+                    echo ", avg. " . number_format($avg / ($repeat + 1), 2) . " ms";
+                }
+            }
+
+            if ($failed) {
+                break;
+            }
+        }
+    }
+
     /**
      * Main loop of your testing script. It takes care of arguments and bunch
      * of options passing to the script. It will set exit code to 1 if one of
@@ -223,11 +358,11 @@ class Console
      *                            It is function because test parameters can be random and otherwise
      *                            next iterations would get the same parameters as first one.
      */
-    public static function main(array /*Test*/ $tests, callable $paramsGen)
+    public static function main(array /*TestGroup*/ $testGroups, callable $paramsGen)
     {
         $params = call_user_func($paramsGen);
         $parsedOptions = Console::parseOptions(Console::options());
-        $validOptions = Console::validateOptions($parsedOptions, $tests, $params);
+        $validOptions = Console::validateOptions($parsedOptions, $testGroups, $params);
 
         if ($validOptions !== true) {
             echo $validOptions;
@@ -235,77 +370,37 @@ class Console
         }
 
         if ($parsedOptions["help"] === true) {
-            echo Console::help($tests, $params);
+            echo Console::help($testGroups, $params);
             exit(0);
         }
 
-        $testsMap = ArrayHelper::associative($tests, FunctionHelper::callObjMethod('name'));
-
         $exit = 0;
-        foreach (ValueHelper::ifEmpty($parsedOptions['tests'], array_keys($testsMap)) as $testName) {
-            $avg = 0;
-            $failed = false;
-            for ($repeat = 0; $repeat < $parsedOptions["n"]; $repeat++) {
-                $runParams = Console::overrideParameters(
-                    $parsedOptions["params"],
-                    call_user_func($paramsGen)
-                );
+        
+        $groupsMap = ArrayHelper::associative($testGroups, FunctionHelper::callObjMethod('name'));
+        foreach (ValueHelper::ifEmpty($parsedOptions['groups'], array_keys($groupsMap)) as $groupName) {
+            $runParams = Console::overrideParameters(
+                $parsedOptions["params"],
+                call_user_func($paramsGen)
+            );
 
-                $test = $testsMap[$testName];
+            if (!self::runGroupOption("pre", $groupName, $groupsMap, $runParams)) {
+                $exit = 1;
+                continue;
+            }
 
-                echo Printer::clearLine();
-                echo "\r" . $test->name() . " ";
-                if ($parsedOptions["n"] > 1) {
-                    echo Printer::yellow(($repeat + 1) . "/" . $parsedOptions["n"]) . " ";
-                }
-                $result = $test->run($runParams['params']);
+            $testsMap = ArrayHelper::associative(
+                $groupsMap[$groupName]->tests(),
+                FunctionHelper::callObjMethod('name')
+            );
+            
+            foreach (ValueHelper::ifEmpty($parsedOptions['tests'], array_keys($testsMap)) as $testName) {
+                self::runTest($testName, $testsMap, $parsedOptions, $paramsGen);
+                echo "\n";
+            }
 
-                $avg += $result->executionTime();
-
-                if ($result->isFailed()) {
-                    $exit = 1;
-                    $failed = true;
-                    echo Printer::red('[ FAILED ] ') . number_format($result->executionTime(), 2) . " ms";
-                    if ($test->timeLimit() !== null
-                        && $result->executionTime() > $test->timeLimit()) {
-                        echo Printer::red(' > ' . $test->timeLimit() . ' ms limit') . "\n";
-                    } else {
-                        echo "\n";
-                    }
-
-                    if (empty($test->description())) {
-                        echo Printer::yellow("Test description: ") . "none\n";
-                    } else {
-                        echo Printer::yellow("Test description: \n")
-                            . $test->description() . "\n";
-                    }
-
-                    if (empty($runParams['rawparams'])) {
-                        echo Printer::yellow("Parameters: ") . "none\n";
-                    } else {
-                        echo Printer::yellow("Parameters: \n")
-                            . Printer::listValues(
-                                array_map(
-                                    function ($k, $v) {
-                                        return $k . ":" . $v;
-                                    },
-                                    array_keys($runParams['rawparams']),
-                                    $runParams['rawparams']
-                                )
-                            );
-                    }
-                    echo Printer::yellow("Message: \n");
-                    echo $result->failMessage() . "\n";
-                } else {
-                    echo Printer::green('[ OK ] ') . number_format($result->executionTime(), 2) . " ms";
-                    if ($parsedOptions["n"] > 1) {
-                        echo ", avg. " . number_format($avg / ($repeat + 1), 2) . " ms";
-                    }
-                }
-
-                if ($failed) {
-                    break;
-                }
+            if (!self::runGroupOption("post", $groupName, $groupsMap, $runParams)) {
+                $exit = 1;
+                continue;
             }
 
             echo "\n";

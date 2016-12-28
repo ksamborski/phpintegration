@@ -4,25 +4,31 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use PHPIntegration\TestParameter;
 use PHPIntegration\Test;
+use PHPIntegration\TestGroup;
 use PHPIntegration\Console;
 use PHPIntegration\Testable;
 use PHPIntegration\Utils\RandomHelper;
 use PHPIntegration\Randomizable;
 
-$tests = [
-    new Test(
-        "Test1",
-        "First name test",
-        function ($p) {
-            return "Hello " . $p["first name"]->name . "!";
-        }
-    ),
-    new Test(
-        "Test2",
-        "Random name test",
-        function ($p) {
-            return "Hello " . $p["random name"]->name . "! It can't be real name...";
-        }
+$groups = [
+    new TestGroup(
+        "Object tests",
+        [
+            new Test(
+                "Test1",
+                "First name test",
+                function ($p) {
+                    return "Hello " . $p["first name"]->name . "!";
+                }
+            ),
+            new Test(
+                "Test2",
+                "Random name test",
+                function ($p) {
+                    return "Hello " . $p["random name"]->name . "! It can't be real name...";
+                }
+            )
+        ]
     )
 ];
 
@@ -82,4 +88,4 @@ $params = function () {
     ];
 };
 
-Console::main($tests, $params);
+Console::main($groups, $params);

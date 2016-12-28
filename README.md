@@ -17,23 +17,29 @@ First of all let's define some tests:
 ```php
 use PHPIntegration\TestParameter;
 use PHPIntegration\Test;
+use PHPIntegration\TestGroup;
 use PHPIntegration\Console;
 
-$tests = [
-    new Test(
-        "Test1",
-        "Simple test 1",
-        function($p) {
-            usleep(rand(10000, 100000));
-            return true;
-        }
-    ),
-    new Test(
-        "Test2",
-        "Failing test",
-        function($p) {
-            return "this is a test that always fails";
-        }
+$groups = [
+    new TestGroup(
+        "Basic tests",
+        [
+            new Test(
+                "Test1",
+                "Simple test 1",
+                function ($p) {
+                    usleep(rand(10000, 100000));
+                    return true;
+                }
+            ),
+            new Test(
+                "Test2",
+                "Failing test",
+                function ($p) {
+                    return "this is a test that always fails";
+                }
+            )
+        ]
     )
 ];
 
@@ -59,7 +65,7 @@ These parameters are of course objects. Depending of your needs you can define a
 One thing lacking is console. We need to initialize console interface (CLI) to get some way to use it.
 
 ```php
-Console::main($tests, $params);
+Console::main($groups, $params);
 ```
 
 It takes two arguments: array of tests and function generating dynamic parameters. It is a function in the latter case because we need some way to randomize them again after each iteration when we will run some test n times.
@@ -68,9 +74,11 @@ Now let's run it:
 ```bash
 php basic_example.php
 
-Simple test 1 [ OK ] 36.46 ms
-
-Failing test [ FAILED ] 0.00 ms
+Basic tests [pre] [ OK ] 
+>> Test1 [ OK ] 48.12 ms
+>> Test2 [ FAILED ] 0.00 ms
+Test description: 
+Failing test
 Parameters: 
 - departments:[Warsaw,Berlin]
 - currency:PLN
@@ -78,15 +86,18 @@ Parameters:
 - hours:[12]
 Message: 
 this is a test that always fails
+Basic tests [post] [ OK ] 
 ```
 
 Now let's override some parameter:
 
 ```bash
 php basic_example.php -p "currency:EUR"
-Simple test 1 [ OK ] 38.27 ms
-
-Failing test [ FAILED ] 0.00 ms
+Basic tests [pre] [ OK ] 
+>> Test1 [ OK ] 24.58 ms
+>> Test2 [ FAILED ] 0.00 ms
+Test description: 
+Failing test
 Parameters: 
 - departments:[Warsaw,Berlin]
 - currency:EUR
@@ -94,6 +105,7 @@ Parameters:
 - hours:[12]
 Message: 
 this is a test that always fails
+Basic tests [post] [ OK ] 
 ```
 
 OK, but how to use them in a test? Remember the $p argument in tests that we defined previously? That's the parameters map. To read for example the currency you can write:
@@ -114,15 +126,17 @@ What if we forget what parameters we can pass? CLI for the rescue!
 php basic_example.php -h
 Usage: php basic_example.php [OPTIONS]
 
-  -t, --test TEST_NAME                             Run only given tests (you can pass multiple -t option) 
-  -p, --parameter PARAMETER_NAME:PARAMETER_VALUE   Set test parameter (you can pass multiple -p option) 
-  -n                                               Number of repeats 
+  -g, --group GROUP_NAME 				 Run only tests from given groups (you can pass multiple -g option) 
+  -t, --test TEST_NAME 					 Run only given tests (you can pass multiple -t option) 
+  -p, --parameter PARAMETER_NAME:PARAMETER_VALUE 	 Set test parameter (you can pass multiple -p option) 
+  -n 							 Number of repeats 
 
-  -h, --help                                       Show this help
+  -h, --help 						 Show this help
 
 Available tests:
-- Simple test 1
-- Failing test
+- Basic tests: 
+  - Test1: Simple test 1
+  - Test2: Failing test
 
 Available parameters:
 - departments 
@@ -165,21 +179,26 @@ You can see the same old TestParameter class but there is also RandomHelper. It 
 But real the beauty is the CLI:
 
 ```bash
-Warsaw test 6/100 [ FAILED ] 0.00 ms
+Random tests [pre] [ OK ] 
+>> Test1 4/100 [ FAILED ] 0.00 ms
+Test description: 
+Warsaw test
 Parameters: 
 - departments:[]
-- currency:rH/
-- hours:[20,14,16,16,22,21]
+- currency:b X
+- hours:[14,12]
 Message: 
 this test succeeds only if Warsaw is passed
-
-Failing test 1/100 [ FAILED ] 20.08 ms > 10 ms limit
+>> Test2 1/100 [ FAILED ] 20.10 ms > 10 ms limit
+Test description: 
+Failing test
 Parameters: 
-- departments:[Cracow]
-- currency:jYy
-- hours:[22,5,3,13]
+- departments:[Cracow,Warsaw,Berlin]
+- currency:Mwy
+- hours:[6,18,13,2]
 Message: 
 this is a test that always fails
+Random tests [post] [ OK ] 
 ```
 
 The n parameter to the script tells it to repeat execution of every test n times. Whenever one fails it stops repeating it and goes to next test. You can spot the "> 10 ms limit" in the second test case. This happened because it this test time limit was set. You can do it by providing third parameter to the Test class:

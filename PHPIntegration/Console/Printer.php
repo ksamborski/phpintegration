@@ -108,16 +108,20 @@ class Printer
     /**
      * Returns a text that will list all values from the given array.
      * @param array $vals Values to list
+     * @param string $prefix A string to add at beginning of each line
+     * @param bool $newline Whether to add new line to the end of the string
      * @return string Encoded string recognized by the terminal.
      */
-    public static function listValues(array $vals) : string
+    public static function listValues(array $vals, string $prefix = "", bool $newline = true) : string
     {
-        return array_reduce(
-            $vals,
-            function ($res, $val) {
-                return $res . Printer::green("- ") . $val . "\n";
-            },
-            ""
-        );
+        return implode(
+            "\n",
+            array_map(
+                function ($val) use ($prefix) {
+                    return $prefix . Printer::green("- ") . $val;
+                },
+                $vals
+            )
+        ) . ($newline ? "\n" : "");
     }
 }

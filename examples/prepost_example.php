@@ -9,7 +9,7 @@ use PHPIntegration\Console;
 
 $groups = [
     new TestGroup(
-        "Basic tests",
+        "Basic tests with pre and post",
         [
             new Test(
                 "Test1",
@@ -18,14 +18,28 @@ $groups = [
                     usleep(rand(10000, 100000));
                     return true;
                 }
-            ),
+            )
+        ],
+        [
+            "pre" => function () { return (rand() % 2) == 1 ? true : "Random failing pre"; },
+            "post" => function () { return (rand() % 2) == 1 ? true : "Random failing post"; },
+        ]
+    ),
+    new TestGroup(
+        "Basic tests with pre and post 2",
+        [
             new Test(
-                "Test2",
-                "Failing test",
+                "Test1",
+                "Simple test 1",
                 function ($p) {
-                    return "this is a test that always fails";
+                    usleep(rand(10000, 100000));
+                    return true;
                 }
             )
+        ],
+        [
+            "pre" => function () { return (rand() % 2) == 1 ? true : "Random failing pre"; },
+            "post" => function () { return (rand() % 2) == 1 ? true : "Random failing post"; },
         ]
     )
 ];
