@@ -1,3 +1,9 @@
+## 0.7
+
+Features:
+
+  - test groups
+
 ## 0.6
 
 Features:
