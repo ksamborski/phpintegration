@@ -21,8 +21,8 @@ $groups = [
             )
         ],
         [
-            "pre" => function () { return (rand() % 2) == 1 ? true : "Random failing pre"; },
-            "post" => function () { return (rand() % 2) == 1 ? true : "Random failing post"; },
+            "pre" => function ($params) { return (rand() % 2) == 1 ? true : "Random failing pre"; },
+            "post" => function ($params) { return (rand() % 2) == 1 ? true : "Random failing post"; },
         ]
     ),
     new TestGroup(

@@ -1,3 +1,9 @@
+## 0.8
+
+Features:
+
+  - pre and post group function now take run parameters as an argument
+
 ## 0.7
 
 Features:

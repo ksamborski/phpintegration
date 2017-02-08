@@ -250,7 +250,7 @@ class Console
         $res = false;
         try {
             echo Printer::cyan($groupName . " [" . $name . "] ");
-            $res = call_user_func([$groupsMap[$groupName], $name]);
+            $res = call_user_func([$groupsMap[$groupName], $name], $runParams['params']);
         } catch (\Exception $e) {
             $res = $e->getMessage();
         }
