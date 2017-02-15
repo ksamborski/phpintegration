@@ -2,7 +2,6 @@
 
 namespace PHPIntegration\Utils;
 
-
 /**
  * Bunch of useful function when working with arrays as trees.
  * A tree is a structure that could be either a value (a leaf) or an array of trees (a forest).
@@ -77,4 +76,3 @@ class TreeHelper
         return $paths;
     }
 }
-

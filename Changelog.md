@@ -1,3 +1,9 @@
+## 0.9
+
+Features:
+
+  - measure function for measuring execution time of specified test parts
+  
 ## 0.8
 
 Features:

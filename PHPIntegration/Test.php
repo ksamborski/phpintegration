@@ -13,6 +13,7 @@ class Test
     private $desc;
     private $runable;
     private $tl;
+    private $measurements;
 
     /**
      * Test case constructor.
@@ -31,6 +32,7 @@ class Test
         $this->runable = $run;
         $this->tl = $timeLimit;
         $this->desc = $desc;
+        $this->measurements = [];
     }
 
     /**
@@ -61,6 +63,15 @@ class Test
     }
 
     /**
+     * Returns test's custom execution time measurements.
+     * @return array An array of measurement name => execution times
+     */
+    public function measurements() : array
+    {
+        return $this->measurements;
+    }
+
+    /**
      * Simply runs the test.
      * @param array $params Array of parameter name => parameter value
      * @return \PHPIntegration\TestResult
@@ -72,7 +83,17 @@ class Test
         $msg = '';
 
         try {
-            $res = call_user_func($this->runable, $params);
+            $res = call_user_func(
+                $this->runable,
+                array_merge(
+                    $params,
+                    [
+                        "measure" => function (string $name, callable $func, $timeLimit = null) {
+                            return $this->measure($name, $func, $timeLimit);
+                        }
+                    ]
+                )
+            );
             $failed = $res !== true;
             if ($failed) {
                 $msg = $res;
@@ -87,9 +108,34 @@ class Test
         $duration = ($t2 - $t1) * 1000;
 
         if ($failed || ($this->tl !== null && $this->tl < $duration)) {
-            return TestResult::fail($msg, $duration);
+            return TestResult::fail($msg, $duration, $this->measurements);
         } else {
-            return TestResult::ok($duration);
+            return TestResult::ok($duration, $this->measurements);
+        }
+    }
+    
+    private function measure(string $name, callable $func, $timeLimit = null)
+    {
+        $t1 = microtime(true);
+
+        try {
+            $result = $func();
+        } catch (\Exception $e) {
+            $toThrow = $e;
+        }
+
+        $t2 = microtime(true);
+        $duration = ($t2 - $t1) * 1000;
+        $this->measurements[$name][] = $duration;
+
+        if (isset($toThrow)) {
+            throw $toThrow;
+        } else {
+            if (!is_null($timeLimit) && $timeLimit < $duration) {
+                return 'Execution time exceeded.';
+            }
+            
+            return $result;
         }
     }
 }

@@ -76,7 +76,7 @@ class ArrayHelper
      * object it will execute \PHPIntegration\Utils\ObjectHelper::equal for
      * comparision unless it is an instance of
      * \PHPIntegration\Utils\Interfaces\Eq, then it will call equal method from
-     * the interface. And if some is an array it will recur. 
+     * the interface. And if some is an array it will recur.
      * @param array $a First object to test
      * @param array $b Second object to test
      * @param array $ignored Properties names to skip
@@ -295,4 +295,3 @@ class ArrayHelper
         return false;
     }
 }
-

@@ -10,12 +10,14 @@ class TestResult
     private $status;
     private $message;
     private $time;
+    private $measurements;
 
-    private function __construct($status, $message, $time)
+    private function __construct($status, $message, $time, array $measurements)
     {
         $this->status = $status;
         $this->message = $message;
         $this->time = $time;
+        $this->measurements = $measurements;
     }
     
     private static function okStatus() : int
@@ -34,9 +36,9 @@ class TestResult
      * @param float $executionTime Time of the test's case execution in ms
      * @return \PHPIntegration\TestResult
      */
-    public static function fail(string $message, float $executionTime) : TestResult
+    public static function fail(string $message, float $executionTime, array $measurements) : TestResult
     {
-        return new TestResult(TestResult::failedStatus(), $message, $executionTime);
+        return new TestResult(TestResult::failedStatus(), $message, $executionTime, $measurements);
     }
     
     /**
@@ -44,9 +46,9 @@ class TestResult
      * @param float $executionTime Time of the test's case execution in ms
      * @return \PHPIntegration\TestResult
      */
-    public static function ok(float $executionTime) : TestResult
+    public static function ok(float $executionTime, array $measurements) : TestResult
     {
-        return new TestResult(TestResult::okStatus(), "", $executionTime);
+        return new TestResult(TestResult::okStatus(), "", $executionTime, $measurements);
     }
 
     /**
@@ -83,5 +85,14 @@ class TestResult
     public function executionTime() : float
     {
         return $this->time;
+    }
+
+    /**
+     * Returns test's custom execution time measurements.
+     * @return array An array of measurement name => execution times
+     */
+    public function measurements() : array
+    {
+        return $this->measurements;
     }
 }

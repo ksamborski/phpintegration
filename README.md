@@ -214,7 +214,7 @@ The n parameter to the script tells it to repeat execution of every test n times
         10
     )
 ```
-10 means the test should finish within 10 ms.
+10 means the test should finish within 10 ms. You can measure other things within tests. The test function argument is an array of parameters and a special measure function called __measure__. See examples/measurement_example.php
 
 ## Objects as parameters
 So far we defined only string, int and array parameters. But we can do better. We can define objects! Unfortunately to do this we need to implement an interface. Take a look at object_example.php from the examples directory.

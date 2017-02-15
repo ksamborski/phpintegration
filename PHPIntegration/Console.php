@@ -312,6 +312,34 @@ class Console
                     echo "\n";
                 }
 
+                if (!empty($result->measurements())) {
+                    echo Printer::listValues(
+                        array_map(
+                            function ($k, $v) {
+                                if (empty($v) || !is_array($v)) {
+                                    return "";
+                                }
+
+                                if (count($v) > 1) {
+                                    $min = min($v);
+                                    $max = max($v);
+                                    $avg = array_sum($v) / count($v);
+                                    $last = $v[count($v) - 1];
+                                    return $k . ": min " . number_format($min, 2) . " ms"
+                                        . ", max " . number_format($max, 2) . " ms"
+                                        . ", avg " . number_format($avg, 2) . " ms"
+                                        . ", last " . number_format($last, 2) . " ms";
+                                } else {
+                                    return $k . ": " . number_format($v[0], 2) . " ms";
+                                }
+                            },
+                            array_keys($result->measurements()),
+                            array_values($result->measurements())
+                        ),
+                        "   "
+                    );
+                }
+
                 if (empty($test->description())) {
                     echo Printer::yellow("Test description: ") . "none\n";
                 } else {
@@ -345,6 +373,35 @@ class Console
             if ($failed) {
                 break;
             }
+        }
+
+        if (!$failed && !empty($result->measurements())) {
+            echo "\n";
+            echo Printer::listValues(
+                array_map(
+                    function ($k, $v) {
+                        if (empty($v) || !is_array($v)) {
+                            return "";
+                        }
+
+                        if (count($v) > 1) {
+                            $min = min($v);
+                            $max = max($v);
+                            $avg = array_sum($v) / count($v);
+                            $last = $v[count($v) - 1];
+                            return $k . ": min " . number_format($min, 2) . " ms"
+                                . ", max " . number_format($max, 2) . " ms"
+                                . ", avg " . number_format($avg, 2) . " ms"
+                                . ", last " . number_format($last, 2) . " ms";
+                        } else {
+                            return $k . ": " . number_format($v[0], 2) . " ms";
+                        }
+                    },
+                    array_keys($result->measurements()),
+                    array_values($result->measurements())
+                ),
+                "   "
+            );
         }
     }
 
