@@ -280,7 +280,7 @@ class Console
         }
     }
 
-    private static function runTest(string $testName, array $testsMap, array $parsedOptions, callable $paramsGen)
+    private static function runTest(string $testName, array $testsMap, array $parsedOptions, callable $paramsGen) : bool
     {
         $avg = 0;
         $failed = false;
@@ -302,7 +302,6 @@ class Console
             $avg += $result->executionTime();
 
             if ($result->isFailed()) {
-                $exit = 1;
                 $failed = true;
                 echo Printer::red('[ FAILED ] ') . number_format($result->executionTime(), 2) . " ms";
                 if ($test->timeLimit() !== null
@@ -403,6 +402,8 @@ class Console
                 "   "
             );
         }
+
+        return !$failed;
     }
 
     /**
@@ -451,7 +452,10 @@ class Console
             );
             
             foreach (ValueHelper::ifEmpty($parsedOptions['tests'], array_keys($testsMap)) as $testName) {
-                self::runTest($testName, $testsMap, $parsedOptions, $paramsGen);
+                $success = self::runTest($testName, $testsMap, $parsedOptions, $paramsGen);
+                if (!$success) {
+                    $exit = 1;
+                }
                 echo "\n";
             }
 

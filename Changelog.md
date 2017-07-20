@@ -1,3 +1,9 @@
+## 0.9.1
+
+Bugfixes:
+
+  - fixed setting proper exit code
+
 ## 0.9
 
 Features:
