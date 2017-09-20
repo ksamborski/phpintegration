@@ -1,3 +1,9 @@
+## 0.9.2
+
+Bugfixes:
+
+  - fixed showing error when given test name is not found
+
 ## 0.9.1
 
 Bugfixes:

@@ -119,7 +119,7 @@ class Console
                             function ($t) {
                                 return $t->name() . ": " . $t->description();
                             },
-                            $tests
+                            $testsMap
                         )
                     );
             }
