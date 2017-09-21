@@ -1,3 +1,9 @@
+## 0.9.3
+
+Bugfixes:
+
+  - fixed exception when multiple groups are defined and only option -t is passed
+
 ## 0.9.2
 
 Bugfixes:

@@ -441,17 +441,25 @@ class Console
                 call_user_func($paramsGen)
             );
 
-            if (!self::runGroupOption("pre", $groupName, $groupsMap, $runParams)) {
-                $exit = 1;
-                continue;
-            }
-
             $testsMap = ArrayHelper::associative(
                 $groupsMap[$groupName]->tests(),
                 FunctionHelper::callObjMethod('name')
             );
+
+            $testsToRun = array_intersect(
+                ValueHelper::ifEmpty($parsedOptions['tests'], array_keys($testsMap)),
+                array_keys($testsMap)
+            );
+            if (empty($testsToRun)) {
+                continue;
+            }
+
+            if (!self::runGroupOption("pre", $groupName, $groupsMap, $runParams)) {
+                $exit = 1;
+                continue;
+            }
             
-            foreach (ValueHelper::ifEmpty($parsedOptions['tests'], array_keys($testsMap)) as $testName) {
+            foreach ($testsToRun as $testName) {
                 $success = self::runTest($testName, $testsMap, $parsedOptions, $paramsGen);
                 if (!$success) {
                     $exit = 1;
