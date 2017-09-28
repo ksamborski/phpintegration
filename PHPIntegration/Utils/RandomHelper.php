@@ -56,7 +56,7 @@ class RandomHelper
     /**
      * Picks one random value from provided array.
      * @param array $possibleValues Array of possible values
-     * @return array Random item from the array
+     * @return mixed Random item from the array
      */
     public static function randomOneOf(array $possibleValues)
     {
