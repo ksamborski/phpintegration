@@ -1,3 +1,9 @@
+## 0.9.4
+
+Bugfixes:
+
+  - fixed mostly bugs in documentation discovered by PHAN
+
 ## 0.9.3
 
 Bugfixes:
