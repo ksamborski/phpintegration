@@ -11,9 +11,9 @@ interface Testable
      * This method should construct new object from string given by user
      * from CLI.
      * @param string $value - string given by user
-     * @return PHPIntegration\Testable - an instance of object created from string
+     * @return \PHPIntegration\Testable - an instance of object created from string
      */
-    public static function build(string $value) : Testable;
+    public static function build(string $value) : \PHPIntegration\Testable;
     
     /**
      * This method should validate string given by user from CLI before

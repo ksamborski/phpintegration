@@ -23,10 +23,10 @@ class Test
      *                      it must take one parameter
      *                      that is array of
      *                      parameter name => parameter value
-     * @param int $timeLimit Optional. Execution time limit for test,
+     * @param int|null $timeLimit Optional. Execution time limit for test,
      *                       useful for benchmarking.
      */
-    public function __construct(string $id, string $desc, callable $run, int $timeLimit = null)
+    public function __construct(string $id, string $desc, callable $run, $timeLimit = null)
     {
         $this->id = $id;
         $this->runable = $run;
@@ -55,7 +55,7 @@ class Test
 
     /**
      * Returns test's time limit.
-     * @return int Test's time limit.
+     * @return int|null Test's time limit.
      */
     public function timeLimit()
     {

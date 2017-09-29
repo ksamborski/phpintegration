@@ -29,6 +29,7 @@ class TreeHelper
 
         $k = array_rand($arr);
         $v = $arr[$k];
+        $path = [];
         $path[] = is_array($v) ? $k : $v;
 
         while (is_array($v)) {

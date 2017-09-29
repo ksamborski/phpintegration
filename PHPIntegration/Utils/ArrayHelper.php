@@ -63,7 +63,7 @@ class ArrayHelper
     {
         return array_reduce(
             $items,
-            function ($carry, $item) use ($function) {
+            function ($carry, $item) use ($methodName) {
                 $carry->$methodName($item);
                 return $carry;
             },

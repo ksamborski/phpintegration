@@ -411,7 +411,7 @@ class Console
      * of options passing to the script. It will set exit code to 1 if one of
      * the tests failed or 0 when all succeeded.
      *
-     * @param array $tests Array of \PHPIntegration\Test that can be run
+     * @param TestGroup[] $testGroups Array of \PHPIntegration\Test that can be run
      * @param callable $paramsGen Function that should return array of \PHPIntegration\TestParameter.
      *                            It is function because test parameters can be random and otherwise
      *                            next iterations would get the same parameters as first one.
